@@ -1,0 +1,72 @@
+{
+  "kind": "build_request",
+  "title": "Remove FAQ page and all FAQ navigation links",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Remove the FAQ page from the frontend by deleting the /faq route and removing the FAQPage import/usage so the application no longer registers or serves a FAQ page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "CAN YOU REMOVE FAQ ALTOGETHER"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/src/App.tsx no longer imports FAQPage",
+        "frontend/src/App.tsx route tree no longer defines a route for path \"/faq\"",
+        "The app builds successfully with no unused/failed imports related to FAQPage"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Remove all navigation references to the FAQ page from the UI, including the Footer FAQ link and the Support page link to /faq.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "CAN YOU REMOVE FAQ ALTOGETHER"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/src/components/Footer.tsx no longer renders a link to \"/faq\"",
+        "frontend/src/pages/SupportPage.tsx no longer renders a link to \"/faq\"",
+        "No other visible navigation element links to \"/faq\""
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure that directly visiting the URL path \"/faq\" no longer displays FAQ content; instead, the user should see a not-found experience or be redirected to the home page.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "CAN YOU REMOVE FAQ ALTOGETHER"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Visiting \"/faq\" does not render the previous FAQ accordion content",
+        "The user is either redirected to \"/\" or shown a not-found page with a clear path back to Home"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify any files under frontend/src/components/ui (read-only Shadcn components).",
+    "Do not change backend canister interfaces or storage as part of removing the FAQ."
+  ],
+  "nonGoals": [
+    "Do not add a replacement FAQ page or any new informational page content.",
+    "Do not rewrite Terms, Privacy, Policy, Pricing, or Support page copy beyond removing FAQ references."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

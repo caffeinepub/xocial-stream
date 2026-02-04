@@ -1,0 +1,789 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 156,
+  "summary": "Xocial.Stream is live on ICP via Caffeine and has evolved into a lightweight, calm video-sharing app with a strict 'no clutter' principle and explicit manager approval required before builds. Key UX/features implemented and deployed through iterations include: persisted upload status states (Uploading→Processing→Live), Continue Watching (quiet resume), search + categories discovery, automatic + manual thumbnails, and deletion permissions (users delete only their own videos; admin can delete any). Sharing UX was iterated and ultimately kept minimal (Copy Link + Timestamp only), with external social share + QR removed. Admin-only tooling is grouped under an Admin dropdown (Principal ID, Architecture, Payment Settings) and admin visibility remains identity/session dependent across browsers (Chrome vs Edge). Stripe setup remained fragile at times (save/load failures, pricing page 'Payment configuration not available'), leading to temporary Stripe Settings access paths; paid plan buttons were eventually restored to working. Footer/navigation direction continued toward a minimal TuoraSystems-branded footer (Pricing/Terms/Privacy/Support) and removing Architecture from public UI; Community & Ethics Policy is intended to be linked contextually (e.g., Upload/Pricing) rather than duplicated in the footer. Pricing copy/heading was updated again with 'Start Free, Grow Limitless. Plans and Pricing Made Simple.' plus homepage tagline 'Upload everything. Share without limits.' and Pro blurb 'Finally, a video platform without storage anxiety. Unlimited video. One simple price.' Creator Plus plan marketing remains restricted to only implemented features (Custom branding + Private collections), deferring analytics/password protection/scheduling promises.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Internet Identity authentication provider",
+      "synonyms": [
+        "II auth",
+        "DFINITY AuthClient login"
+      ],
+      "description": "Provides application-wide authentication via Internet Identity using @dfinity/auth-client, persisting delegation identity across reloads and exposing login/logout/status flags through a React context (InternetIdentityProvider/useInternetIdentity).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Backend actor creation with identity + access-control initialization",
+      "synonyms": [
+        "useActor",
+        "authenticated canister actor"
+      ],
+      "description": "Creates an anonymous or authenticated canister actor depending on login state, and calls backend.initializeAccessControl() for authenticated users; on identity change, invalidates/refetches dependent React Query caches.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "Role-based access control (admin/user/guest)",
+      "synonyms": [
+        "RBAC",
+        "AccessControl"
+      ],
+      "description": "Backend enforces permissions for user and admin operations. First principal to initialize becomes admin; admins can assign roles and perform privileged operations.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "Persistent admin session in browser storage",
+      "synonyms": [
+        "admin localStorage session",
+        "adminSession"
+      ],
+      "description": "Stores verified admin principal in localStorage with session versioning and automatic revalidation/force reactivation; used to restore admin UI affordances across reloads.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Admin verification banner and admin navigation controls",
+      "synonyms": [
+        "AdminVerificationBanner",
+        "Header admin dropdown"
+      ],
+      "description": "Automatically verifies admin access on login, displays a dismissible banner when admin privileges are confirmed, and conditionally shows admin navigation (Stripe settings, admin dropdown).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "User profile storage and onboarding modal",
+      "synonyms": [
+        "ProfileSetupModal",
+        "UserProfile"
+      ],
+      "description": "Allows authenticated users to create/save a simple profile (name). If no profile exists, a modal prompts the user to set their name; profiles can be fetched for the caller and (with backend authorization) for other principals.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Video upload with category selection and upload progress",
+      "synonyms": [
+        "UploadPage",
+        "uploadVideo mutation"
+      ],
+      "description": "Authenticated users can upload a video with title/description/category (including custom categories). The frontend streams bytes via ExternalBlob and supports progress callbacks; backend enforces a Free plan limit (10 uploads/month).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "Automatic thumbnail capture from video during upload",
+      "synonyms": [
+        "thumbnail capture",
+        "canvas frame capture"
+      ],
+      "description": "Upload UI can capture a thumbnail frame from the selected video using an offscreen video element + canvas and send it as an image file with the upload request.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "Custom thumbnail upload/update for owners and admins",
+      "synonyms": [
+        "updateThumbnail",
+        "ThumbnailType.custom"
+      ],
+      "description": "Video owners or admins can upload a custom image thumbnail for an existing video; the backend validates ownership/admin permission and stores thumbnail blob + type.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "Video browsing, grid display, and navigation",
+      "synonyms": [
+        "HomePage",
+        "VideoGrid"
+      ],
+      "description": "Displays all videos in a responsive grid with uploader info, like counts, category badges, share actions, and owner/admin delete controls; clicking a card navigates to the video playback page.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "Featured videos section",
+      "synonyms": [
+        "getFeaturedVideos",
+        "FeaturedVideoCard"
+      ],
+      "description": "Homepage can show a featured videos section sourced from backend.getFeaturedVideos(); backend supports featured status in metadata (admin-only setter exists).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "Video playback page with metadata and sharing",
+      "synonyms": [
+        "VideoPage",
+        "ShareButton"
+      ],
+      "description": "Provides a video player using direct blob URLs, displays uploader profile, upload date, category badge, description, and includes sharing tools (copy link and timestamped link).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "Likes system (like/unlike + counts)",
+      "synonyms": [
+        "video likes",
+        "Heart button"
+      ],
+      "description": "Authenticated users can like/unlike videos; backend prevents duplicate likes and tracks likeCount; UI invalidates relevant queries after mutations.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "Comments system (add, list, delete)",
+      "synonyms": [
+        "video comments",
+        "community engagement"
+      ],
+      "description": "Authenticated users can add comments to videos; comments are listed per video and can be deleted by the author or an admin, with UI refresh via query invalidation.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Video deletion with permission checks",
+      "synonyms": [
+        "deleteVideo",
+        "owner/admin delete"
+      ],
+      "description": "Video owners or admins can delete a video; backend also removes associated comments and likes. UI provides confirmation dialogs in both VideoPage and VideoGrid cards.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "Search and category filtering",
+      "synonyms": [
+        "searchVideos",
+        "videosByCategory",
+        "combined search"
+      ],
+      "description": "Homepage supports debounced search by title/description, category filter buttons, and combined search+category queries; backend implements search and category query endpoints.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-17",
+      "title": "Categories discovery endpoint and UI filters",
+      "synonyms": [
+        "getAllCategories",
+        "category pills"
+      ],
+      "description": "Frontend fetches categories from backend and renders category filter buttons; backend computes categories from stored video metadata.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-18",
+      "title": "Stripe configuration storage and retrieval (admin-managed)",
+      "synonyms": [
+        "StripeConfigAndUrls",
+        "stripe settings"
+      ],
+      "description": "Backend stores Stripe API keys and plan checkout URLs in canister state; admin-only update endpoint and public fetch endpoint are consumed by the frontend. Admin UI (TempStripeSettingsPage) loads existing config and allows saving updates.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-19",
+      "title": "Pricing page with Stripe checkout redirects",
+      "synonyms": [
+        "PricingPage",
+        "subscription plans"
+      ],
+      "description": "Displays Free/Pro/Creator Plus plans; Free plan is informational, while paid plans redirect to configured Stripe Checkout URLs fetched from backend; shows a status alert when URLs are present.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-20",
+      "title": "Stripe API integration via IC HTTP outcalls",
+      "synonyms": [
+        "createCheckoutSession",
+        "getStripeSessionStatus"
+      ],
+      "description": "Backend can create Stripe checkout sessions and fetch session status using IC management canister http_request with a response transform; includes request body building and client_reference_id extraction for associating sessions to principals.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-21",
+      "title": "Blob storage maintenance mixin for IC storage primitives",
+      "synonyms": [
+        "caffeine storage mixin",
+        "dead blob pruning"
+      ],
+      "description": "Provides endpoints for storage gateway authorization refresh, checking blob liveness, enumerating dead blobs (authorized callers only), confirming deletion/pruning, and topping up a cashier canister with spare cycles.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-22",
+      "title": "Static informational pages and architecture diagram page",
+      "synonyms": [
+        "Policy/Terms/Privacy/Support/Architecture pages"
+      ],
+      "description": "Includes pages for Community & Ethics Policy, Terms of Service, Privacy Policy, Support contact info, and an Architecture page showing a multi-canister ecosystem diagram and explanatory content.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-23",
+      "title": "Camera utility hook",
+      "synonyms": [
+        "useCamera",
+        "media capture"
+      ],
+      "description": "Provides camera start/stop/switch/retry and photo capture to File using getUserMedia, with error typing and refs for a video/canvas element.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-24",
+      "title": "QR scanning hook built on camera capture",
+      "synonyms": [
+        "useQRScanner",
+        "jsQR integration"
+      ],
+      "description": "Loads jsQR dynamically, scans frames from the camera at a configurable interval, records recent QR results, and exposes start/stop/switch/clear controls plus readiness state.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-25",
+      "title": "Admin Payment Settings page (Stripe keys + plan URLs) implemented",
+      "synonyms": [
+        "PaymentSettingsPage",
+        "Stripe settings UI"
+      ],
+      "description": "Admin-accessible Payment Settings UI exists in the main frontend for editing/saving Stripe publishable/secret keys and Pro/Creator Plus checkout URLs stored in canister state (Free has no URL). Intended to replace/avoid reliance on an empty placeholder page and improve settings accessibility.",
+      "reqIds": [
+        "AR-3",
+        "AR-14",
+        "AR-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-26",
+      "title": "GitHub export / ICP CLI build-template scaffold",
+      "synonyms": [
+        "build-template",
+        "icp.yaml",
+        "deploy.sh"
+      ],
+      "description": "Repository now includes a build-template scaffold (Dockerfile, icp.yaml, deploy.sh, frontend/backend canister yamls, scripts for image pruning/resizing, and workspace/package configs) to support exporting/building/deploying the app consistently via ICP tooling.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-27",
+      "title": "Video route error boundary for crash containment",
+      "synonyms": [
+        "VideoRouteErrorBoundary",
+        "route-level error boundary"
+      ],
+      "description": "Frontend adds a route/page-level error boundary around Video pages to prevent full-app crashes in production and provide a controlled fallback when rendering/runtime errors occur (e.g., React minified errors).",
+      "reqIds": [
+        "AR-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-28",
+      "title": "Banned words moderation tooling (admin page)",
+      "synonyms": [
+        "BannedWordsAdminPage",
+        "banned-words admin",
+        "content filter admin"
+      ],
+      "description": "Adds an admin-facing UI surface for managing/viewing a banned-words list to support lightweight moderation/content-policy enforcement workflows (foundation for future automated flagging/gating).",
+      "reqIds": [
+        "AR-39",
+        "AR-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-29",
+      "title": "FAQ static informational page",
+      "synonyms": [
+        "FAQPage"
+      ],
+      "description": "Adds a dedicated FAQ page to host common questions/answers as a lightweight informational surface alongside existing Terms/Privacy/Support/Policy pages.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-faq-page-from-the-frontend-by-deleting-the-faq-route-and-removing-the-faqpage-import-usage-so-the-application-no-longer-registers-or-serves-a-faq-page",
+      "title": "Remove the FAQ page from the frontend by deleting the /faq route and removing the FAQPage import/usage so the application no longer registers or serves a FAQ page.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-all-navigation-references-to-the-faq-page-from-the-ui-including-the-footer-faq-link-and-the-support-page-link-to-faq",
+      "title": "Remove all navigation references to the FAQ page from the UI, including the Footer FAQ link and the Support page link to /faq.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-directly-visiting-the-url-path-faq-no-longer-displays-faq-content-instead-the-user-should-see-a-not-found-experience-or-be-redirected-to-the-home-page",
+      "title": "Ensure that directly visiting the URL path \"/faq\" no longer displays FAQ content; instead, the user should see a not-found experience or be redirected to the home page.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Update footer to © 2026 Built by TuoraSystems and include links: Pricing, Terms, Privacy, Support; remove Architecture links from footer/public navigation",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add/maintain Terms of Service, Privacy Policy, and Support pages and link them from footer",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Ensure Stripe settings (keys + plan URLs) persist reliably in backend and are readable by Pricing buttons in live mode; keep a temporary Stripe Settings access path only if needed",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Lock in Free plan behavior: 10 uploads/month, 720p streaming, basic player, community access; ensure UI does not show Free plan as 'not configured'",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add a hard separation/lock so draft builds cannot overwrite the live frontend unless explicitly published (prevent live/draft desync that makes Stripe/videos appear missing)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Brainstorm/assess Vimeo-like premium features roadmap for Xocial.Stream: player branding/watermarking, branded galleries, lead capture + CTAs/cards, and advanced live events (livestream, Q&A/polls/chat, multi-destination streaming, DVR, scheduled simulive, event analytics, marketing integrations) with storage/user limits",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Finalize public footer to: © 2026 TuoraSystems — All rights reserved. Built by TuoraSystems; include links Pricing, Terms, Privacy, Support; remove all Architecture links from public UI/navigation",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Public footer update: remove all Architecture links; set footer to “© 2026 TuoraSystems — All rights reserved. Built by TuoraSystems” and include links Pricing, Terms, Privacy, Support",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Ensure Terms, Privacy, and Support pages exist and display owner-provided copy exactly (no AI rewriting/overwriting) and are reachable from footer",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add admin-only navigation grouping: show Principal ID, Architecture, Payment Settings under a single Admin dropdown; ensure admin-only links never appear for normal users",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Stripe reliability: ensure Stripe keys + Pro/Creator Plus plan URLs persist in backend, load reliably on Payment Settings page, and Pricing page buttons no longer show “Payment configuration not available” in live mode; Free plan does not require Stripe URL",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Thumbnail UX: ensure every upload gets an automatic frame-capture thumbnail by default, with optional manual custom thumbnail upload/update by owner/admin",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Update /pricing page to the new finalized 3 plans + copy: Free ($0; 10 uploads/month; 720p; basic player; community access; Free slogans), Pro ($12.99; unlimited uploads/storage; 1080p/4K; no ads; no weekly limits; no compression loss; direct links; embeds) with Pro blurb “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”, Creator Plus ($24.99; Everything in Pro + custom branding + private collections only), and pricing page slogan “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Public footer overhaul: remove all Architecture links and use footer copy “© 2026 TuoraSystems — All rights reserved. Built by TuoraSystems” with links: Pricing, Terms, Privacy, Support",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add/maintain Terms, Privacy, and Support pages with owner-provided copy displayed exactly (no rewriting), linked from the footer",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add lightweight Search + Categories (YouTube-like): header search bar; results grid; category tagging on upload and filter UI for browsing",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add/keep admin-accessible Stripe configuration UI to enter keys + Pro/Creator Plus checkout URLs (Free has no URL) and ensure values persist/reload reliably in live mode",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Implement video deletion controls: users can delete only their own videos; admin can delete any video; include confirmations and UI that appears only when permitted",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Add curated/branded collections (playlists/showcases) to help users organize and find videos more easily, while keeping the UI calm and uncluttered",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Make the Community & Ethics Policy link/button on Upload Video (and Pricing page if present) open the full policy page; avoid duplicate policy links in the footer (keep footer minimal)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Add optional video chapters (creator-provided timestamps/table-of-contents) so viewers can jump to sections in longer videos without clutter",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Add optional 2-month free trial promo for paid plans (credit-card required via Stripe) and reflect promo copy on pricing/checkout flow without adding clutter",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Fix production crash on video pages: resolve Minified React error #185 by reproducing in non-minified/dev build, identifying root cause, and deploying a verified fix so watching any video does not crash.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Stripe regression: restore/retain saved Stripe keys + Pro/Creator Plus checkout URLs in live mode (no disappearing config) so Pricing buttons work and never show “Payment configuration not available”",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Admin UX: keep admin-only items grouped in an Admin dropdown and ensure admin UI does not overlap Login/Logout; prevent admin controls from disappearing due to header layout issues",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Design Xocial.Stream discovery/feeds to do the opposite of algorithm-driven engagement: human-first browsing (chronological/latest), manual curation/collections, no autoplay/trending/recommendation loops, avoid engagement-bait mechanics",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Set home-screen icon/favicon (PWA-style) so Add-to-Home-Screen uses the Xocial.Stream logo instead of the default browser icon",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Keep sharing UX calm: use a Share dropdown/click-to-show that avoids clutter and (final desired state) removes external social share + QR if they create rights/clutter concerns; retain only the minimal internal share actions as approved",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Enforce Community & Ethics Policy operationally (moderation): ensure prohibited content is not allowed on the platform; define and implement a lightweight enforcement approach (e.g., admin removal workflow and/or upload gating/approval) without adding clutter",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add an automated 'censor alarm'/content filter to detect prohibited language/sexual/violent/hate speech (e.g., via word/phrase detection and/or speech-to-text) and block playback or flag content for moderation, aligned with the Community & Ethics Policy.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Update Pricing page plan presentation to new finalized plan headings/slogans while keeping promises strictly limited to implemented features (Free: 'Unlimited Possibility Starts Here'; Pro: 'Unlimited Video. One Simple Price.'; Creator Plus: only implemented items; keep 'Start Free, Grow Limitless. Plans and Pricing Made Simple.' as main pricing headline)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Define and enforce an operational 'stability mode' process: batch changes, require explicit manager approval before any build/publish, and minimize rebuilds to reduce live regressions/desync",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Add a short, human-readable trust-signal explaining ICP/decentralized storage benefits (\"Powered by the Internet Computer (ICP)… no single point of failure\"), placed subtly (About page, FAQ, small footer line, and/or How-it-works), not as a headline or crypto/tech brag",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Remove the FAQ page entirely from Xocial.Stream (and remove any related navigation/links)",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [
+    "Internet Computer canister architecture: a single Motoko actor in backend/main.mo with modularized helpers (authorization, stripe, http-outcalls, blob-storage mixin).",
+    "Role-based access control (RBAC) implemented in backend/authorization/access-control.mo; first non-anonymous caller to initialize becomes admin; roles persisted in an OrderedMap inside canister state.",
+    "Frontend uses an Actor abstraction (useActor) to create authenticated/anonymous canister actors; actor initialization calls initializeAccessControl() after login.",
+    "Data layer uses TanStack React Query with dedicated hooks (useQueries.ts) for each backend call, plus query invalidation on mutations and on actor identity changes.",
+    "Video storage uses ExternalBlob references (IC storage primitives) and a blob-storage mixin exposing maintenance/admin endpoints (gateway principal authorization, dead blob pruning confirmation, cashier refill).",
+    "Stripe integration is split: (a) backend Stripe API calls via IC http_request outcalls (backend/stripe/stripe.mo + backend/http-outcalls/outcall.mo) and (b) a separate persistent StripeConfigAndUrls configuration stored in canister state and editable via an admin UI.",
+    "Admin UX includes a persistent admin session stored in browser localStorage (adminSession.ts) with session versioning and revalidation mechanisms; admin verification is done via backend verifyAdminAccess/isCallerAdmin queries.",
+    "UI is built with TailwindCSS (OKLCH token system), shadcn/ui components, lucide-react icons, and toast notifications (sonner).",
+    "Routing is handled by TanStack Router with a shared layout including Header, Footer, AdminVerificationBanner, and ProfileSetupModal.",
+    "Project rebranded to Xocial.Stream; branding/logo updated accordingly.",
+    "Pricing model updated to 3 tiers: Free ($0; 10 uploads/month, 720p, basic player, community access), Pro ($12.99; unlimited uploads/storage, 1080p/4K, no ads, no weekly limits, no compression loss, direct links, embeds), Creator Plus ($24.99; Everything in Pro + custom branding + private collections).",
+    "/pricing page used as primary pricing surface; includes new headline slogan: \"Start Free, Grow Limitless. Plans and Pricing Made Simple.\"",
+    "Stripe integration uses saved publishable/secret keys and plan URLs in canister state; Free tier does not require a Stripe URL.",
+    "Footer/navigation revised to emphasize Pricing + legal/support pages; Architecture links intended to be removable from public UI.",
+    "Admin navigation grouped into an admin-only dropdown (e.g., Principal ID, Architecture, Payment Settings) to avoid clutter for normal users.",
+    "Video share UI uses a dropdown/click-to-show pattern to avoid clutter; currently only Copy Link + Timestamp are kept (Twitter/LinkedIn/QR removed).",
+    "Thumbnail system supports automatic frame capture on upload plus optional manual custom thumbnail upload/update.",
+    "Deletion permissions: users can delete only their own videos; admin can delete any video.",
+    "Public navigation/footer is being shifted away from Architecture links toward Pricing + Terms/Privacy/Support; Architecture intended to be admin-only or removed from public UI.",
+    "Stripe configuration and plan URLs are managed via admin-facing settings pages; a 'temporary' Stripe Settings access route/button may be used when admin UI visibility is inconsistent across sessions/browsers.",
+    "PWA/favicon home-screen icon should be set via HTML head links (favicon/apple-touch-icon/manifest) to use the Xocial.Stream logo.",
+    "Discussed adding a 'live-lock' safeguard: ensure draft edits remain isolated and cannot affect the live frontend unless the user explicitly publishes changes.",
+    "Pricing/tiers content updated to: Free ($0; 10 uploads/month, 720p, basic player, community access), Pro ($12.99; unlimited uploads/storage, 1080p/4K, no ads, no weekly limits, no compression loss, direct video links, embeds), Creator Plus ($24.99; currently limited to 'Everything in Pro' + custom branding + private collections; other advanced items deferred).",
+    "Plans & Pricing main-page slogan selected: \"Start Free, Grow Limitless. Plans and Pricing Made Simple.\"",
+    "PWA/favicon/home-screen icon links were added so Add-to-Home-Screen uses the Xocial.Stream logo instead of a default browser icon.",
+    "Stripe admin UX has multiple entry points (original + temporary Stripe settings pages/buttons) due to admin visibility/session inconsistencies during drafts; aim is a single stable settings entry and reliable persistence.",
+    "Pricing page headline/slogan updated to: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Homepage hero tagline added: “Upload everything. Share without limits.”",
+    "Free plan is treated as active/configured (no Stripe URL required), with Free tier messaging showing as active/available.",
+    "Stripe paid-plan wiring relies on backend-stored config; paid tiers use Stripe URLs while Free tier bypasses Stripe.",
+    "Public footer/navigation direction further reinforced: remove Architecture from public links; keep admin-only access via dropdown/controls.",
+    "Pricing page headline/slogan updated to: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Pricing plan copy refined: Creator Plus reduced to only currently supported premium features (Custom branding + Private collections); advanced items (Analytics/Password-protected videos/Scheduled releases) explicitly deferred.",
+    "Stripe configuration/visibility can desync across drafts/live and across browsers; temporary Stripe Settings access paths/buttons may be used to regain access when admin navigation is inconsistent.",
+    "Product direction: keep Xocial.Stream lightweight and uncluttered; avoid copying competitor feature sets wholesale—only add minimal, high-value features that preserve stability and simplicity.",
+    "Branding updated to display “Xocial.Stream” throughout the app; Xocial.social considered as a separate hub concept, but current app brand is Xocial.Stream.",
+    "Pricing surface uses a dedicated /pricing page with three tiers (Free/Pro/Creator Plus) and promotional copy; Free tier is treated as active/configured and does not require Stripe.",
+    "Stripe admin UX includes Payment Settings for entering Stripe keys and plan URLs; a temporary Stripe Settings access button/page was used as a workaround when admin visibility was inconsistent.",
+    "Admin-only controls are grouped into a single Admin dropdown (Principal ID, Architecture, Payment Settings) to keep the header uncluttered for normal users.",
+    "Public sharing controls were intentionally kept lightweight; external social share options were added experimentally and then removed to reduce clutter (aiming for Copy Link + Timestamp only).",
+    "PWA/home-screen icon (Add-to-Home-Screen) should use the Xocial.Stream logo via HTML head icon links (favicon/apple-touch-icon/manifest).",
+    "Pricing page headline/slogan selected for Plans & Pricing: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "New plan copy direction: keep Free and Pro features as described, and restrict Creator Plus marketing to only currently supported features (Custom branding + Private collections); defer analytics/password-protected videos/scheduled releases.",
+    "Product principle reinforced: only add features that enhance UX simplicity/calm (watching, uploading, finding videos) and avoid clutter/competitor bloat; additions must be explicitly approved before building.",
+    "Stripe plan setup clarified: Free plan does not require a Stripe checkout URL; only paid tiers need plan URLs, and keys/URLs must be stored persistently in backend and reliably fetched by the pricing page in live mode.",
+    "Stripe plan URLs must be in the same Stripe mode as the API keys (live keys with live payment links; test keys with test links) or save/checkout will fail.",
+    "Admin-only Stripe Settings access may require a temporary direct header button/route when the Admin dropdown/session visibility is inconsistent; goal remains a single stable admin settings entry.",
+    "Two Stripe settings UIs may coexist (original Stripe Settings + temporary Stripe Settings) due to admin visibility/session issues; keep only one canonical Stripe Settings UI long-term to avoid confusion and config overwrites.",
+    "Search/discovery should primarily use uploaded video title + description text as the core searchable metadata (supports search and future organization without extra clutter).",
+    "User is interested in adding three UX-enhancing features (kept lightweight): curated/branded collections, Continue Watching (resume playback), and optional video chapters/timestamps; these should only be added if they preserve a calm, uncluttered experience.",
+    "Confirmed near-term, lightweight UX roadmap items (no build yet): Continue Watching (resume playback), optional creator-provided video chapters/timestamps, and clear upload status states (Uploading → Processing → Live), as long as they keep the UI calm and uncluttered.",
+    "Upload-status clarity feature (Uploading → Processing → Live) should be implemented as explicit per-video/per-upload state and timestamps, so the UI can display accurate progress without adding clutter. Likely requires backend support (persisted status) plus frontend display; not purely backend.",
+    "Roadmap sequencing decision: implement the three UX features one-by-one (not bundled). Order: (1) clear upload status states (Uploading → Processing → Live) first (safest, mostly backend state + small UI label), then (2) Continue Watching, then (3) optional creator video chapters/timestamps.",
+    "Free plan is now treated as configured/active (no Stripe URL required) so pricing no longer shows Free as “not configured”; Free signup is in-app via Internet Identity, paid tiers use Stripe URLs.",
+    "Pricing/checkout flow direction reinforced: footer link → /pricing page → plan button → Stripe Checkout (credit card); Stripe is the only supported payment method for paid tiers.",
+    "Upload/Policy UX decision reinforced: Community & Ethics Policy link/button should be available contextually (e.g., on Upload and Pricing surfaces) rather than duplicated heavily in the footer.",
+    "Upload-status clarity (Uploading → Processing → Live) has now been implemented and deployed, adding a persisted per-video upload/processing/live state so the UI can show accurate status without clutter.",
+    "Added a build-template scaffold (icp.yaml + deploy.sh + Dockerfile + workspace configs) to standardize export/build/deploy flows for ICP CLI/GitHub export use cases.",
+    "Payment Settings / Stripe settings UI was actively updated in the main frontend (PaymentSettingsPage.tsx modified), indicating movement toward a canonical admin settings surface rather than an empty placeholder.",
+    "Continue Watching (resume playback) has now been implemented and deployed, allowing logged-in users to resume videos from their last watched position with minimal/no UI clutter.",
+    "Stripe setup UX now includes a Stripe Settings page (and, at times, a temporary Stripe Settings access path) intended to let the admin enter Stripe keys + plan checkout URLs in-app; Free plan requires no Stripe URL.",
+    "Pricing/checkout wiring relies on the pricing page successfully fetching the saved Stripe configuration from the backend; failures surface as “Payment configuration not available.”",
+    "Sharing controls direction reaffirmed: keep sharing minimal; external social share buttons (e.g., LinkedIn/Twitter) and QR sharing were removed/avoided in favor of calmer, lightweight sharing (Copy Link + Timestamp).",
+    "Video chapters/timestamps feature direction clarified: chapters are creator-entered (uploader types/pastes timestamp + label lines), stored as lightweight per-video metadata, and rendered as a clickable list that seeks the player to the chosen time; hidden entirely when no chapters exist to avoid clutter.",
+    "Observed in practice: draft builds/publishes can unexpectedly affect the live frontend (not just draft), causing temporary disappearance of Stripe config/videos until re-publish/relink; live/draft isolation remains a reliability risk.",
+    "Pricing/tagline content updated: homepage hero tagline “Upload everything. Share without limits.”; Pro plan blurb “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”; pricing page slogan “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Stripe Settings UX evolved: an admin-only temporary Stripe Settings route/button was added as a workaround when admin navigation/session visibility was inconsistent; long-term goal remains one canonical settings surface.",
+    "Share controls expanded temporarily (Copy Link, Timestamp, LinkedIn, QR) via a Share dropdown, but direction reverted to minimal sharing; external share + QR should be removed to avoid clutter/rights concerns.",
+    "Admin controls should be grouped into a single Admin dropdown (Principal ID, Architecture, Payment Settings) and shown only for the verified admin principal; header spacing must prevent overlap with Login/Logout.",
+    "Deployed/implemented in this conversation: clear upload status states (Uploading → Processing → Live) and Continue Watching (resume playback) were added and published live.",
+    "Attempted addition: Terms/Privacy/Support pages were cleared and re-added multiple times; must always display owner-provided copy exactly (no rewriting).",
+    "Operational safety concept discussed: a 'live-lock/publish-lock' mode to prevent draft builds from overwriting the live frontend unless explicitly unlocked/published; paired with an ultra-conservative 'stability mode' practice (freeze changes/no builds) for maximum reliability.",
+    "Stripe pricing-page wiring was repaired so the live Pricing page can reliably fetch the saved Stripe configuration from the backend and activate Pro/Creator Plus checkout buttons (Free tier bypasses Stripe).",
+    "Sharing UI direction implemented/reinforced: remove external social share options (e.g., LinkedIn/Twitter) and QR sharing; keep sharing minimal (Copy Link + Timestamp) via a calm click-to-show/dropdown pattern.",
+    "Admin header UX adjusted to prevent overlap between Admin controls and Login/Logout; admin-only items (Principal ID, Architecture, Payment Settings) grouped under an Admin dropdown.",
+    "Free plan now treated as configured/active in the app (no Stripe URL required), so pricing no longer shows Free as “not configured.”",
+    "Share UI evolved through a multi-option dropdown (Copy Link, Timestamp, LinkedIn, QR, Twitter) but was later reduced again per direction to remove external social share + QR and keep sharing minimal (Copy Link + Timestamp).",
+    "Payment Settings/Stripe settings UX expanded to include admin-entered plan checkout URLs in-app (in addition to Stripe keys), so pricing buttons can be wired without editing code files.",
+    "Header/admin UX tweak discussed and applied: ensure Admin dropdown does not visually overlap Login/Logout; spacing/z-index adjustments prevent admin controls from being hidden.",
+    "Continue Watching is implemented as a lightweight, no-clutter feature by persisting per-user playback position per video locally in the browser and seeking to that timestamp on return to the video.",
+    "Home-screen icon/favicon support was added so Add-to-Home-Screen uses the Xocial.Stream logo instead of a default browser icon.",
+    "Architecture ecosystem diagram update implemented: removed PingCall.cloud references and replaced with Xocialcom.",
+    "Footer direction implemented/confirmed in conversation: remove all Architecture links from public UI/footer; footer should be TuoraSystems-branded with links Pricing, Terms, Privacy, Support; Community & Ethics Policy is linked contextually (e.g., Upload and/or Pricing) rather than duplicated in footer.",
+    "Upload-status clarity (Uploading → Processing → Live) was (re)implemented and deployed again during this conversation (versions ~70), reinforcing persisted per-video status shown in UI.",
+    "Continue Watching (resume playback) was (re)implemented and deployed again during this conversation (versions ~71), resuming playback quietly without extra UI noise.",
+    "Sharing UI was expanded (Share dropdown with Copy Link, Timestamp, LinkedIn, QR, etc.) then later reduced again; final direction returned to minimal share options, removing LinkedIn and QR (keeping Copy Link + Timestamp).",
+    "A PWA/home-screen icon update was added so Add-to-Home-Screen uses the Xocial.Stream logo instead of a default browser icon (draft ~67).",
+    "Admin UX: Principal ID is now displayed in the header/admin area so the owner can quickly verify the current Internet Identity principal.",
+    "Share UI direction finalized again: remove external social share options and QR; keep sharing minimal (Copy Link + Timestamp) to avoid clutter/rights concerns.",
+    "Product direction: build Xocial.Stream to be human-first and calm, intentionally avoiding algorithm-driven engagement loops (no forced recommendations/trending/outrage incentives); prioritize simple browsing/search/collections and user control.",
+    "Product principle reaffirmed: design Xocial.Stream to be the opposite of algorithm-driven engagement—human-first, intentional discovery; avoid autoplay rabbit holes/infinite-scroll addiction tricks; prioritize transparent discovery (search/categories/manual curation/collections) over opaque ranking and engagement farming; focus on content people are proud to upload/watch.",
+    "Scope clarification: at this stage the product is intentionally just a video-sharing app (upload + watch + basic discovery/community), not a broader social-network hub or multi-product hosting/storage platform.",
+    "Company quote / north-star principle: “What would someone be proud to upload or watch?”",
+    "Pricing page main heading/slogan updated to: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Homepage hero tagline set to: “Upload everything. Share without limits.”; Pro plan blurb added: “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”",
+    "Upload UX enhancement implemented: clear per-video status states (Uploading → Processing → Live) so users can see what stage a video is in after upload.",
+    "Continue Watching implemented: resume playback from last position, stored locally per user/video for a quiet, no-clutter experience.",
+    "Thumbnail system reinforced: automatic frame-capture thumbnail on upload plus optional manual custom thumbnail upload/update by owner/admin.",
+    "Deletion permissions implemented: users can delete only their own videos; admin can delete any video, with UI shown only when permitted.",
+    "Admin-only navigation can be grouped under an Admin dropdown (Principal ID, Architecture, Payment Settings) to keep the public header uncluttered.",
+    "PWA/favicon home-screen icon support should be set via HTML head links so Add-to-Home-Screen uses the Xocial.Stream logo (not the default browser icon).",
+    "Product rule reaffirmed: platform should reject/act on content that violates the Community & Ethics Policy; policy is not just informational—enforcement is required to keep a clean community.",
+    "Pricing/tiers display was revised again in-conversation: Free ($0; 10 uploads/month; 720p; basic player; community access) + Pro ($12.99; unlimited uploads/storage; 1080p/4K; no ads; no weekly limits; no compression loss; direct links; embeds) + Creator Plus ($24.99) marketed only with currently supported features (Custom branding + Private collections); analytics/password-protected videos/scheduled releases explicitly removed from plan copy as not yet supported.",
+    "Selected new Pricing page slogan/headline: “Start Free, Grow Limitless. Plans and Pricing Made Simple.” (to be used on the main Pricing page).",
+    "Selected additional marketing taglines: Homepage hero tagline “Upload everything. Share without limits.” and Pro plan blurb “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”",
+    "Sharing UX changed again: Share dropdown concept was tried with multiple options (Copy Link, Timestamp, LinkedIn, QR, Twitter) but direction moved back toward minimal sharing; user requested removing LinkedIn and QR (keep only Copy Link + Timestamp).",
+    "Stripe payments flow was debugged further: pricing page previously showed “Payment configuration not available”; wiring/fetch was fixed and Pro/Creator Plus payment buttons began working again after publishing live.",
+    "Free plan status was explicitly set to “active/configured” (no Stripe URL required) so UI no longer shows Free as “not configured.”",
+    "Legal pages workflow churn: Terms/Privacy/Support pages were cleared and re-added multiple times; requirement reiterated that these pages must display owner-provided copy verbatim (no rewriting).",
+    "Footer direction updated/implemented again: remove Community & Ethics Policy link from footer (policy remains contextually linked on Upload and Pricing); public footer should be © 2026 TuoraSystems — All rights reserved. Built by TuoraSystems with links Pricing/Terms/Privacy/Support; remove Architecture links from public UI.",
+    "PWA/home-screen icon work revisited: add favicon/apple-touch-icon/manifest links so Add-to-Home-Screen uses the Xocial.Stream logo instead of a default grey browser icon.",
+    "New UX features implemented and published: clear upload status (Uploading → Processing → Live) and Continue Watching (resume playback) were built and deployed again (versions ~70–71).",
+    "Thumbnail system implemented again: automatic frame-capture thumbnail on upload plus optional manual custom thumbnail upload/update (published ~v48).",
+    "Deletion permissions implemented again: users can delete only their own videos; admin can delete any video (published ~v49).",
+    "Admin header UX refined again: Admin dropdown spacing/overlap fixes applied; admin-only items grouped under dropdown; header overlap issues were a recurring cause of perceived “admin missing.”",
+    "Branding update performed again: visible branding changed to “Xocial.Stream” (dot style) throughout the app; user also requested a logo variant matching Xocial.social style with only “.Stream” swapped in.",
+    "A route-level error boundary component (VideoRouteErrorBoundary) was added/updated to contain VideoPage runtime/render errors and prevent full-app crashes in production; investigation notes were documented under frontend/docs/dev-notes/react-185-video-page-crash.md.",
+    "App is now live in production (Caffeine domain) with key UX features deployed: upload status (Uploading→Processing→Live) and Continue Watching (quiet resume) plus thumbnail (auto+manual) and deletion permissions.",
+    "Pricing/marketing taglines updated and deployed: homepage “Upload everything. Share without limits.”; Pro copy “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”; pricing headline “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Free plan is treated as active/configured in live mode (no Stripe URL required); Stripe is used only for paid tiers via saved backend configuration.",
+    "Public share UX direction reconfirmed in practice: external social share options (Twitter/LinkedIn) and QR sharing were removed/avoided in favor of minimal sharing (Copy Link + Timestamp) to keep UI calm and reduce rights concerns.",
+    "Admin navigation can expose admin-only tools via an Admin dropdown; admin visibility remains identity/session-dependent across browsers (Chrome vs Edge).",
+    "Pricing page headline/slogan finalized for main pricing surface: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Homepage hero tagline in use: “Upload everything. Share without limits.”",
+    "Pro plan blurb in use on pricing: “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”",
+    "Branding updated across the app to display “Xocial.Stream” (dot style).",
+    "Pricing page header/slogan set to: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Homepage hero tagline set to: “Upload everything. Share without limits.”",
+    "Pro plan blurb set to: “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”",
+    "Plan-promise rule reaffirmed: only advertise Creator Plus features that are actually implemented (Custom branding + Private collections); do not promise analytics/password-protected videos/scheduled releases until built.",
+    "Pricing page headline selected/confirmed: “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+    "Homepage hero tagline in use: “Upload everything. Share without limits.”",
+    "Pro plan blurb in use: “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”",
+    "Share UX direction reconfirmed again: remove external social share options and QR; keep minimal share actions (Copy Link + Timestamp).",
+    "Initial moderation tooling added in the frontend via an admin-only Banned Words page (BannedWordsAdminPage), forming a foundation for future policy enforcement/flagging flows.",
+    "Operational stability practice: use a 'stability mode' where live is treated as frozen; only build/publish when strictly necessary (user-impacting bug, payments, security, legal), do one change per publish, and re-lock/freeze after publishing to reduce draft/live desync and Stripe/video disappearance risks.",
+    "Decision: keep a single video browsing grid layout (do not add a mixed standard+compact grid option) to preserve simplicity/lightweight UX.",
+    "Decision reaffirmed: keep a single video browsing grid layout with simple scrolling (no mixed standard+compact grid modes or multiple grid types) to preserve lightweight UX.",
+    "Decision reaffirmed in conversation: keep a single responsive scrolling video grid (no separate compact-vs-standard grid modes/toggles); the grid simply adapts by screen size.",
+    "Marketing/positioning decision: don’t sell ICP as “technology”; sell the user benefit (videos stored on decentralized infrastructure, not Big Tech servers; no single point of failure). Use as a subtle trust signal (About/FAQ/footer/How-it-works), not a headline or crypto pitch.",
+    "FAQ/marketing copy principle reinforced: don’t sell ICP as technology; sell user benefits (decentralized storage/no single point of failure) as a subtle trust signal, not a headline or crypto pitch."
+  ],
+  "known_issues": [
+    "Security/ops: backend/main.mo currently hardcodes live Stripe publishable/secret keys and live checkout URLs in the initial canister state; secrets should not be committed or exposed via getStripeConfigAndUrls() (which currently returns secretKey to any caller).",
+    "Stripe API helper buildCheckoutSessionBody() sets shipping_address_collection[allowed_countries][0] for every country, overwriting the same index; should increment the index.",
+    "getCurrentMonth() approximates months as 30-day blocks (dayOfYear/30) and years as 365 days; this will drift from real calendar months and can reset upload counts inaccurately.",
+    "Comment IDs are generated via debug_show(Time.now()); rapid successive comments can collide at nanosecond granularity depending on execution context; better to use a counter/UUID.",
+    "Frontend like state (VideoPage.tsx) uses local isLiked state without fetching whether the current user already liked the video; UI may be incorrect on page load/refresh.",
+    "getAllCategories() lowercases categories but does not deduplicate; may return duplicates and loses original casing semantics.",
+    "Access control bootstrap requirement: many backend calls trap with \"User is not registered\" until initializeAccessControl() is called for that principal; the frontend calls it on actor creation, but any alternative client could hit traps unexpectedly.",
+    "blob-storage/Storage.mo contains typos/unused state fields (e.g., blobTodeletete) and authorized gateway principals require an explicit update call; there is no automated refresh scheduling.",
+    "http-outcalls/outcall.mo uses a fixed cycle allowance (231B cycles) and a static User-Agent; failure modes/cycle exhaustion are not handled beyond trapping.",
+    "Draft vs live deployments sometimes caused perceived loss of Stripe config and videos due to frontend/backend linkage/session confusion; reliability concern when publishing updates.",
+    "Admin UI visibility can appear inconsistent across browsers/devices due to separate Internet Identity sessions/caching, impacting access to Stripe settings.",
+    "Stripe settings save/load and pricing-page payment configuration had intermittent failures (e.g., \"Failed to save Stripe configuration\", \"Payment configuration not available\"), requiring multiple fixes and redeploys.",
+    "Draft/live redeploys and frontend-backend linkage can temporarily make videos/Stripe config appear missing or reset; users observed needing to re-publish/reconnect for Stripe buttons to work.",
+    "Cross-browser Internet Identity sessions cause admin UI to appear/disappear inconsistently (Chrome vs Edge, mobile vs laptop), impacting access to Stripe settings and admin controls.",
+    "Stripe pricing page sometimes shows 'Payment configuration not available' even after settings save, indicating frontend fetch/back-end config read mismatches can occur after deployments.",
+    "Legal/support page content was repeatedly overwritten/cleared during iterations; risk of content loss/incorrect content if not managed carefully.",
+    "Reliability: draft/deploy actions sometimes appear to overwrite or desync the live frontend, temporarily making Stripe configuration and videos appear missing even if backend data is intact; need stronger draft/live isolation (live-lock).",
+    "Caffeine live publishing reliability: user reports needing to click Publish multiple times (e.g., ~6 attempts) for changes to actually go live after additions; undermines confidence in draft/live isolation and suggests flaky deployment state transitions.",
+    "Operational reliability: publishing/draft-to-live updates can temporarily make Stripe configuration and uploaded videos appear missing until the live frontend/backend link is re-established; perceived data loss is a recurring risk during redeploys.",
+    "Stripe UX/reliability: Pricing page may show “Payment configuration not available” even after entering keys/URLs, indicating intermittent frontend fetch/back-end config read mismatches in live mode.",
+    "Stripe config persistence/visibility remains fragile across deployments/browsers: users can see “Payment configuration not available” or “Failed to save Stripe configuration,” and saved plan URLs/keys may appear blank after redeploys until the live frontend/backend link is re-established.",
+    "Stripe settings intermittently fail to save/load (e.g., “Failed to save Stripe configuration”) and pricing page can show “Payment configuration not available,” indicating fragile frontend↔backend config fetch/wiring in live mode.",
+    "Live/draft publish pipeline can be unreliable (sometimes requiring repeated Publish attempts) and redeploys can temporarily make Stripe config and videos appear missing due to frontend/backend linkage or caching/session desync.",
+    "Admin visibility can appear/disappear across browsers/devices due to separate Internet Identity sessions/caching; admin-only pages/links may not show consistently without re-authentication.",
+    "Stripe settings UX/config persistence remains fragile across deployments: user reports Stripe keys/plan URLs appearing saved but later blank, Pricing page showing “Payment configuration not available,” and save attempts failing intermittently (likely frontend↔backend config wiring/desync across live/draft publishes).",
+    "Live/draft publish pipeline reliability concern persists: publishing sometimes requires multiple attempts and can temporarily make Stripe config/videos appear missing until reconnection.",
+    "Stripe config reliability: Stripe keys/plan URLs may save successfully but later appear blank/not loaded in live UI; pricing page can show “Payment configuration not available” due to frontend↔backend config fetch/wiring/desync after redeploys.",
+    "Admin session reliability: admin controls can disappear across browsers/devices or after redeploys due to Internet Identity session differences/caching; can block access to Payment Settings/Stripe configuration until re-authentication.",
+    "Caffeine publish pipeline reliability: user reports needing multiple Publish attempts for changes to go live; draft expiry/redeploy can confuse perceived state of live vs draft.",
+    "Stripe configuration UI/flow can still present confusing states (e.g., keys/URLs appear saved but Pricing page shows “Payment configuration not available”), indicating frontend fetch↔backend config read mismatches can persist across publishes.",
+    "Live publishing workflow reliability: updates/publishes can require multiple attempts and can temporarily make Stripe configuration/videos appear missing due to frontend↔backend linkage/session desync, undermining confidence.",
+    "UX/admin reliability: admin-only header controls (Admin dropdown / Stripe Settings) can appear/disappear across browsers/devices due to Internet Identity session differences; this blocks access to Stripe settings and can be mistaken for lost admin.",
+    "Share UI scope drift risk: external share options (e.g., LinkedIn/QR/Twitter) can add clutter and rights concerns; keep share tools minimal (Copy Link + Timestamp) unless explicitly approved.",
+    "Admin/session UX remains fragile across browsers/devices (Chrome vs Edge, mobile vs laptop) due to separate Internet Identity sessions/caching; admin UI can appear/disappear until re-authentication.",
+    "Stripe config UI can appear to lose keys/URLs after deployments (fields show blank and pricing shows “Payment configuration not available”) even when values were previously saved; indicates frontend↔backend config fetch/persistence/desync remains a risk.",
+    "Stripe config UX reliability: Stripe keys/plan URLs may appear to save but then not load on revisit (fields appear blank) and pricing may show “Payment configuration not available,” indicating intermittent frontend↔backend fetch/persistence/wiring issues across drafts/live redeploys.",
+    "Admin UI visibility can appear inconsistent across browsers (Chrome vs Edge) due to separate Internet Identity sessions/caching; admin-only controls (including Stripe settings access and delete controls) may appear/disappear until re-authentication.",
+    "Reliability: user reports that making changes in draft and deploying can still alter the live app unexpectedly; repeated incidents of Stripe config/videos seeming to disappear after builds until republished/relinked, undermining trust in draft/live separation.",
+    "Stripe config regression observed repeatedly: Stripe keys/plan URLs can appear saved but later load blank; Pricing page can show “Payment configuration not available.” Indicates frontend fetch ↔ backend config read mismatch or live/draft linkage issues.",
+    "Legal/support page content integrity risk: Terms/Privacy/Support content was overwritten/cleared during iterations; strict protection needed to prevent unapproved rewrites/erasure.",
+    "Admin UX reliability: admin controls can disappear or appear inconsistent across browsers (Chrome vs Edge) and after redeploys due to Internet Identity session differences; also header layout overlap can hide admin controls.",
+    "Caffeine publish reliability: user reported needing multiple publish attempts for changes to go live; drafts expiring and redeploy actions can cause perceived loss of config/videos until relinked.",
+    "Stripe/admin UX drift risk: multiple Stripe Settings entry points (original + temporary) can reappear and cause confusion/overwrites; needs consolidation to a single canonical Stripe Settings surface.",
+    "Operational reliability: draft/live separation remains inconsistent—publishing may require multiple attempts and draft builds can appear to affect live frontend, temporarily hiding Stripe config/videos until relink/re-publish.",
+    "Admin visibility/session instability across browsers/devices (Internet Identity caching) can make admin controls appear/disappear intermittently, impacting access to Stripe settings and delete controls.",
+    "Stripe live-mode reliability: Stripe keys/plan URLs can appear saved but later load blank in live UI; Pricing may still show “Payment configuration not available” until frontend↔backend config fetch/wiring is re-synced.",
+    "Operational reliability: publishing/updates can still temporarily desync live UI from backend state (videos/Stripe config appearing missing) until relink/re-publish; undermines confidence in draft/live isolation.",
+    "Production/frontend reliability: Minified React error #185 can occur on video pages (production build crash). Needs reliable reproduction in non-minified/dev mode and a verified fix so video pages never crash.",
+    "Operational reliability: multiple incidents where draft/publish/redeploy actions unexpectedly affected the live frontend, temporarily making Stripe configuration, plan buttons, and/or videos appear missing until republished/relinked.",
+    "Stripe UX: Payment Settings can show “Failed to save Stripe configuration” even when values appear correct; pricing page can show “Payment configuration not available,” indicating fragile frontend↔backend config fetch/wiring across deploys.",
+    "Content protection: videos may still be effectively downloadable/openable in an external media player via direct blob URLs/browser download behavior, even if the UI intends 'stream-only'. If strict no-download is required, additional access control/streaming constraints are needed beyond UI hiding.",
+    "Caffeine draft/live reliability: publishing can require multiple attempts and draft actions can still unexpectedly affect live frontend linkage, temporarily making Stripe configuration and/or videos appear missing until republished/relinked.",
+    "Stripe admin UX reliability: Stripe keys/plan URLs can appear to save but later show blank/not loaded; Pricing may show “Payment configuration not available” or saving may show “Failed to save Stripe configuration,” indicating fragile config fetch/persistence/wiring across redeploys.",
+    "Admin visibility/session reliability across browsers (Chrome vs Edge, mobile vs laptop) can cause admin-only controls (Admin dropdown/Stripe Settings/Delete buttons) to appear/disappear due to Internet Identity session/caching differences, leading to confusion during configuration.",
+    "Operational reliability recurrence: publishing cosmetic UI tweaks caused live-mode perceived loss/desync of Stripe configuration and videos until re-publish/relink; indicates draft/live isolation and frontend↔backend linkage can still temporarily break even after prior fixes.",
+    "Stripe admin/config UX remains fragile: Stripe keys/plan URLs sometimes appear blank after redeploy/publish even after prior “Saved successfully,” and Pricing may temporarily show “Payment configuration not available” until wiring/resync is restored.",
+    "Content integrity risk for legal pages: Terms/Privacy/Support content was overwritten/cleared multiple times during iterations; strict protection is required to prevent unapproved rewrites/erasure.",
+    "Even with a VideoRouteErrorBoundary in place, the underlying cause of the production VideoPage crash (Minified React error #185) may still exist; error boundaries mitigate impact but do not replace a verified root-cause fix.",
+    "Stripe admin config reliability still fragile in live mode: Payment Settings/Stripe Settings fields (keys/plan URLs) can appear blank after saves or across redeploys; Pricing may show “Payment configuration not available,” indicating frontend↔backend config fetch/wiring desync persists.",
+    "Operational reliability: draft/live publish actions can still unexpectedly affect live UI and require multiple publish attempts; temporary loss/desync of Stripe config/videos can occur until republish/relink.",
+    "Cross-browser admin/session inconsistencies remain: admin UI may show in Chrome but not Edge (and vice versa) due to Internet Identity session differences/caching; can block access to Stripe settings and delete controls until re-authentication.",
+    "Operational reliability: publishing and draft/live linkage can still desync after cosmetic/front-end changes, temporarily making Stripe configuration and/or videos appear missing until republish/relink; user reports needing repeated publishes to restore live state.",
+    "Draft/live publish pipeline can still affect live frontend unexpectedly; users reported needing repeated Publish attempts, and redeploys can temporarily desync/hide Stripe configuration and videos until relink/re-publish.",
+    "Stripe settings reliability remains fragile: users observed “Failed to save Stripe configuration” and “Payment configuration not available,” plus cases where keys/plan URLs appeared saved but later loaded blank, indicating frontend fetch↔backend config read/persistence mismatch across publishes.",
+    "Admin visibility still inconsistent across browsers/devices (Chrome vs Edge) due to separate Internet Identity sessions/caching; admin controls may appear missing until re-authentication.",
+    "User concern: perceived risk that crashes/disconnects could cause users to lose uploaded videos; need clear guarantees/UX messaging about backend persistence and/or add recovery/backup measures.",
+    "User confusion/concern around “downloading” videos (opening in external media player) vs streaming-only expectations; ensure download behavior is understood/controlled to protect content rights and avoid perceived data-loss/security risk.",
+    "Stripe config durability regression: after builds/adds/fixes, Stripe keys/plan URLs can appear to disappear/desync again (even if they can later be restored), indicating persistence or live↔draft linkage still isn’t reliably stable across redeploys.",
+    "Process/control reliability: builds/deploys were triggered even when the user explicitly said \"NO BUILD\"/\"stop\", wasting credits and causing unwanted live/draft changes; need a hard permission gate so no build/deploy can occur without explicit manager approval.",
+    "Operational risk acknowledged: every build/publish can introduce regressions or live/draft desync; stability requires minimizing rebuilds and using a strict change-approval + one-change-per-publish discipline.",
+    "Process/control reliability: assistant triggered a build (FAQ page/content) without explicit manager approval/permission; reinforces need for a hard permission gate before any build/publish actions.",
+    "Process/content: FAQ page content was created/updated without waiting for explicit manager approval; user wants no builds/changes unless explicitly approved."
+  ],
+  "isFixRequest": false,
+  "generatedImages": [],
+  "gameProjectType": "none",
+  "projectName": "Xocial.Stream",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

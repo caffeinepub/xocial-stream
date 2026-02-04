@@ -1,0 +1,80 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-remove-the-faq-page-from-the-frontend-by-deleting-the-faq-route-and-removing-the-faqpage-import-usage-so-the-application-no-longer-registers-or-serves-a-faq-page",
+      "featureTitle": "Remove the FAQ page from the frontend by deleting the /faq route and removing the FAQPage import/usage so the application no longer registers or serves a FAQ page.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/FAQPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "stripe@1.0.1",
+        "http-outcalls@1.1.1",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-all-navigation-references-to-the-faq-page-from-the-ui-including-the-footer-faq-link-and-the-support-page-link-to-faq",
+      "featureTitle": "Remove all navigation references to the FAQ page from the UI, including the Footer FAQ link and the Support page link to /faq.",
+      "files": [
+        "frontend/src/components/Footer.tsx",
+        "frontend/src/pages/SupportPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "stripe@1.0.1",
+        "http-outcalls@1.1.1",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-that-directly-visiting-the-url-path-faq-no-longer-displays-faq-content-instead-the-user-should-see-a-not-found-experience-or-be-redirected-to-the-home-page",
+      "featureTitle": "Ensure that directly visiting the URL path \"/faq\" no longer displays FAQ content; instead, the user should see a not-found experience or be redirected to the home page.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/NotFoundPage.tsx"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "stripe@1.0.1",
+        "http-outcalls@1.1.1",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

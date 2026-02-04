@@ -1,0 +1,74 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Remove FAQ page and all FAQ navigation links",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Remove the FAQ route registration and all FAQPage imports/usages so the app no longer serves a FAQ page.",
+      "acceptanceCriteria": [
+        "frontend/src/App.tsx no longer imports FAQPage",
+        "frontend/src/App.tsx route tree no longer defines a route for path \"/faq\"",
+        "The app builds successfully with no unused/failed imports related to FAQPage"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Remove the FAQPage import and delete the /faq route definition from the TanStack Router route tree so the application no longer registers the FAQ route."
+        },
+        {
+          "path": "frontend/src/pages/FAQPage.tsx",
+          "operation": "delete",
+          "description": "Delete the FAQPage implementation file to fully remove the FAQ page from the frontend codebase and avoid any accidental future imports."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Remove all visible navigation links that reference the FAQ page.",
+      "acceptanceCriteria": [
+        "frontend/src/components/Footer.tsx no longer renders a link to \"/faq\"",
+        "frontend/src/pages/SupportPage.tsx no longer renders a link to \"/faq\"",
+        "No other visible navigation element links to \"/faq\""
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Remove the Footer navigation Link that points to \"/faq\" (and any separators adjacent to it) so the FAQ is no longer reachable from the footer."
+        },
+        {
+          "path": "frontend/src/pages/SupportPage.tsx",
+          "operation": "modify",
+          "description": "Remove the Support page Link that points to \"/faq\" and adjust the surrounding sentence to keep the copy intact while eliminating the FAQ reference (do not otherwise rewrite Support page copy)."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Audit and remove any Header navigation element that links to \"/faq\" if present, ensuring there are no remaining UI navigation paths to the removed FAQ route."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure visiting /faq no longer shows FAQ content and instead shows a not-found experience with a clear path back to Home.",
+      "acceptanceCriteria": [
+        "Visiting \"/faq\" does not render the previous FAQ accordion content",
+        "The user is either redirected to \"/\" or shown a not-found page with a clear path back to Home"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/NotFoundPage.tsx",
+          "operation": "create",
+          "description": "Create a NotFoundPage that clearly indicates the page was not found and provides an obvious navigation action back to Home (e.g., a link/button to \"/\")."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Register a catch-all not-found route (e.g., path \"*\") wired to NotFoundPage so that directly visiting \"/faq\" (and any unknown routes) renders the not-found experience rather than the removed FAQ content."
+        }
+      ]
+    }
+  ]
+}
