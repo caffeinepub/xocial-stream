@@ -1,53 +1,35 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-04T00:57:16.323Z",
+  "generatedAt": "2026-02-04T09:50:24.123Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Remove the FAQ page from the frontend by deleting the /faq route and removing the FAQPage import/usage so the application no longer registers or serves a FAQ page.",
+        "summary": "Update the in-app FAQ page (frontend/src/pages/FAQPage.tsx) so it displays the owner-provided “Xocial.Stream — FAQ” content exactly word-for-word (including punctuation, capitalization, and paragraph breaks), replacing all existing FAQ questions/answers and the page heading.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
           "frontend/src/pages/FAQPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
           "frontend/src/pages/FAQPage.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Remove all navigation references to the FAQ page from the UI, including the Footer FAQ link and the Support page link to /faq.",
+        "summary": "Add a lightweight safeguard in the FAQPage implementation so the FAQ content is stored as a single immutable in-file constant (single source of truth) and rendered from that constant, to reduce the risk of accidental partial edits or content drift during future UI refactors.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/pages/SupportPage.tsx",
-          "frontend/src/components/Header.tsx"
+          "frontend/src/pages/FAQPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/Footer.tsx",
-          "frontend/src/pages/SupportPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Ensure that directly visiting the URL path \"/faq\" no longer displays FAQ content; instead, the user should see a not-found experience or be redirected to the home page.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/NotFoundPage.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/NotFoundPage.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/FAQPage.tsx"
         ]
       }
     ]
@@ -57,11 +39,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/Footer.tsx",
     "frontend/src/pages/FAQPage.tsx",
-    "frontend/src/pages/NotFoundPage.tsx",
-    "frontend/src/pages/SupportPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

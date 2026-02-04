@@ -4,6 +4,7 @@ import Storage "blob-storage/Storage";
 import Stripe "stripe/stripe";
 import OutCall "http-outcalls/outcall";
 
+
 import Principal "mo:base/Principal";
 import OrderedMap "mo:base/OrderedMap";
 import Iter "mo:base/Iter";
@@ -13,6 +14,7 @@ import Time "mo:base/Time";
 import Text "mo:base/Text";
 import List "mo:base/List";
 import Int "mo:base/Int";
+
 
 actor {
     // Type for Stripe configuration and product URLs
@@ -26,8 +28,8 @@ actor {
         defaultPricing : ?Nat;
     };
 
-    // Store Stripe configuration and product URLs - STABLE for persistence
-    stable var stripeConfigAndUrls : StripeConfigAndUrls = {
+    // Store Stripe configuration and product URLs
+    var stripeConfigAndUrls : StripeConfigAndUrls = {
         publishableKey = null;
         secretKey = null;
         basicPlanUrl = null;
@@ -37,7 +39,7 @@ actor {
         defaultPricing = null;
     };
 
-    stable var permanentAdminPrincipal : ?Principal = null;
+    var permanentAdminPrincipal : ?Principal = null;
 
     let accessControlState = AccessControl.initState();
     let storage = Storage.new();
@@ -64,7 +66,7 @@ actor {
     };
 
     transient let principalMap = OrderedMap.Make<Principal>(Principal.compare);
-    stable var userProfiles = principalMap.empty<UserProfile>();
+    var userProfiles = principalMap.empty<UserProfile>();
 
     public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
         if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -105,10 +107,10 @@ actor {
 
     transient let textMap = OrderedMap.Make<Text>(Text.compare);
     type ModerationMap = OrderedMap.Map<Text, ModerationResult>;
-    stable var moderationResults : ModerationMap = textMap.empty();
+    var moderationResults : ModerationMap = textMap.empty();
 
     // Configurable banned words list (admin-only)
-    stable var bannedWords : [Text] = ["bannedword1", "bannedword2", "offensivephrase"];
+    var bannedWords : [Text] = ["bannedword1", "bannedword2", "offensivephrase"];
 
     public type VideoMetadata = {
         id : Text;
@@ -140,10 +142,10 @@ actor {
         lastResetMonth : Int;
     };
 
-    stable var videos = textMap.empty<VideoMetadata>();
-    stable var comments = textMap.empty<List.List<Comment>>();
-    stable var likes = textMap.empty<List.List<Principal>>();
-    stable var userPlans = principalMap.empty<UserPlanData>();
+    var videos = textMap.empty<VideoMetadata>();
+    var comments = textMap.empty<List.List<Comment>>();
+    var likes = textMap.empty<List.List<Principal>>();
+    var userPlans = principalMap.empty<UserPlanData>();
 
     // Video history
     public type VideoHistoryKey = {
@@ -166,7 +168,7 @@ actor {
     };
 
     transient let historyMap = OrderedMap.Make<VideoHistoryKey>(compareHistoryKey);
-    stable var videoHistory = historyMap.empty<Nat>();
+    var videoHistory = historyMap.empty<Nat>();
 
     // Helper function to get current month in YYYYMM format
     func getCurrentMonth() : Int {
@@ -701,7 +703,7 @@ actor {
         permanentAdminPrincipal;
     };
 
-    stable var configuration : ?Stripe.StripeConfiguration = null;
+    var configuration : ?Stripe.StripeConfiguration = null;
 
     public query func isStripeConfigured() : async Bool {
         switch (stripeConfigAndUrls.publishableKey, stripeConfigAndUrls.secretKey) {
@@ -759,6 +761,20 @@ actor {
         };
     };
 
+    func isEmptyOrNull(text : ?Text) : Bool {
+        switch (text) {
+            case (null) { true };
+            case (?value) { value == "" };
+        };
+    };
+
+    func isNullOrZero(value : ?Nat) : Bool {
+        switch (value) {
+            case (null) { true };
+            case (?natValue) { natValue == 0 };
+        };
+    };
+
     // ADMIN-ONLY: Update Stripe config with partial updates
     public shared ({ caller }) func updateStripeConfigAndUrls(config : StripeConfigAndUrls) : async () {
         if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -773,13 +789,13 @@ actor {
 
         // Perform partial update only for non-null fields
         stripeConfigAndUrls := {
-            publishableKey = switch (config.publishableKey) { case (?_) config.publishableKey; case (null) stripeConfigAndUrls.publishableKey };
-            secretKey = switch (config.secretKey) { case (?_) config.secretKey; case (null) stripeConfigAndUrls.secretKey };
-            basicPlanUrl = switch (config.basicPlanUrl) { case (?_) config.basicPlanUrl; case (null) stripeConfigAndUrls.basicPlanUrl };
-            creatorPlanUrl = switch (config.creatorPlanUrl) { case (?_) config.creatorPlanUrl; case (null) stripeConfigAndUrls.creatorPlanUrl };
-            proPlanUrl = switch (config.proPlanUrl) { case (?_) config.proPlanUrl; case (null) stripeConfigAndUrls.proPlanUrl };
+            publishableKey = if (isEmptyOrNull(config.publishableKey)) { null } else if (config.publishableKey != null) { config.publishableKey } else { stripeConfigAndUrls.publishableKey };
+            secretKey = if (isEmptyOrNull(config.secretKey)) { null } else if (config.secretKey != null) { config.secretKey } else { stripeConfigAndUrls.secretKey };
+            basicPlanUrl = if (isEmptyOrNull(config.basicPlanUrl)) { null } else if (config.basicPlanUrl != null) { config.basicPlanUrl } else { stripeConfigAndUrls.basicPlanUrl };
+            creatorPlanUrl = if (isEmptyOrNull(config.creatorPlanUrl)) { null } else if (config.creatorPlanUrl != null) { config.creatorPlanUrl } else { stripeConfigAndUrls.creatorPlanUrl };
+            proPlanUrl = if (isEmptyOrNull(config.proPlanUrl)) { null } else if (config.proPlanUrl != null) { config.proPlanUrl } else { stripeConfigAndUrls.proPlanUrl };
             subscriptionsEnabled = config.subscriptionsEnabled;
-            defaultPricing = switch (config.defaultPricing) { case (?_) config.defaultPricing; case (null) stripeConfigAndUrls.defaultPricing };
+            defaultPricing = if (isNullOrZero(config.defaultPricing)) { null } else if (config.defaultPricing != null) { config.defaultPricing } else { stripeConfigAndUrls.defaultPricing };
         };
     };
 
@@ -796,7 +812,10 @@ actor {
         let planData = getUserPlanData(caller);
         switch (planData.plan) {
             case (#free) {
-                let remaining = if (planData.monthlyUploads >= 10) { 0 } else { 10 - planData.monthlyUploads };
+                let remaining = if (planData.monthlyUploads >= 10) { 0 } else {
+                    let result = 10 - planData.monthlyUploads : Int;
+                    if (result <= 0) { 0 } else { Int.abs(result) };
+                };
                 {
                     isActive = true;
                     uploadsRemaining = remaining;
@@ -847,3 +866,6 @@ actor {
         };
     };
 };
+
+
+

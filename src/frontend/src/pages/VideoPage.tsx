@@ -18,6 +18,8 @@ import {
   useRerunModeration,
 } from '../hooks/useQueries';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useIsCoarsePointer } from '../hooks/useIsCoarsePointer';
+import { useVideoPinchPan } from '../hooks/useVideoPinchPan';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -36,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Heart, Trash2, Loader2, Tag, Upload, Image as ImageIcon, Shield, AlertTriangle, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Heart, Trash2, Loader2, Tag, Upload, Image as ImageIcon, Shield, AlertTriangle, RefreshCw, CheckCircle, XCircle, ZoomIn, ZoomOut, Minimize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ShareButton from '../components/ShareButton';
 import { ThumbnailType } from '../backend';
@@ -58,6 +60,7 @@ export default function VideoPage() {
   const deleteVideo = useDeleteVideo();
   const overrideModeration = useOverrideModerationStatus();
   const rerunModeration = useRerunModeration();
+  const isCoarsePointer = useIsCoarsePointer();
 
   // Continue Watching hooks
   const { data: savedProgress } = useGetVideoProgress(videoId);
@@ -69,10 +72,14 @@ export default function VideoPage() {
   const [showThumbnailUpload, setShowThumbnailUpload] = useState(false);
   const [customThumbnailFile, setCustomThumbnailFile] = useState<File | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showZoomControls, setShowZoomControls] = useState(false);
+  
   const videoRef = useRef<HTMLVideoElement>(null);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
   const hasResumedRef = useRef(false);
   const lastSavedTimeRef = useRef(0);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const zoomControlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isAuthenticated = !!identity;
   const currentUserPrincipal = identity?.getPrincipal().toString();
@@ -82,6 +89,88 @@ export default function VideoPage() {
 
   // Check if video is blocked by moderation
   const isBlocked = moderationResult ? !moderationResult.allowed : false;
+
+  // Zoom constants
+  const MIN_ZOOM = 1;
+  const MAX_ZOOM = 3;
+  const ZOOM_STEP = 0.3;
+
+  // Video dimensions for aspect ratio calculation (16:9 standard)
+  const VIDEO_ASPECT_RATIO = 16 / 9;
+  const getVideoDimensions = () => {
+    if (!videoContainerRef.current) return { width: 1920, height: 1080 };
+    const containerWidth = videoContainerRef.current.clientWidth;
+    const containerHeight = containerWidth / VIDEO_ASPECT_RATIO;
+    return { width: containerWidth, height: containerHeight };
+  };
+
+  const videoDimensions = getVideoDimensions();
+
+  // Pinch-to-zoom and pan hook
+  const {
+    state: { scale: zoomScale, translateX: panX, translateY: panY },
+    handlers: { onTouchStart, onTouchMove, onTouchEnd },
+    reset: resetZoom,
+    zoomIn: handleZoomInHook,
+    zoomOut: handleZoomOutHook,
+  } = useVideoPinchPan({
+    minScale: MIN_ZOOM,
+    maxScale: MAX_ZOOM,
+    containerRef: videoContainerRef,
+    contentWidth: videoDimensions.width,
+    contentHeight: videoDimensions.height,
+  });
+
+  // Show zoom controls briefly
+  const showZoomControlsBriefly = useCallback(() => {
+    setShowZoomControls(true);
+    
+    if (zoomControlsTimeoutRef.current) {
+      clearTimeout(zoomControlsTimeoutRef.current);
+    }
+    
+    zoomControlsTimeoutRef.current = setTimeout(() => {
+      setShowZoomControls(false);
+    }, 3000);
+  }, []);
+
+  // Wrap touch handlers to show controls
+  const handleTouchStartWrapper = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      onTouchStart(e);
+      if (e.touches.length === 1) {
+        showZoomControlsBriefly();
+      }
+    },
+    [onTouchStart, showZoomControlsBriefly]
+  );
+
+  // Zoom in handler
+  const handleZoomIn = useCallback(() => {
+    handleZoomInHook(ZOOM_STEP);
+    showZoomControlsBriefly();
+  }, [handleZoomInHook, showZoomControlsBriefly]);
+
+  // Zoom out handler
+  const handleZoomOut = useCallback(() => {
+    handleZoomOutHook(ZOOM_STEP);
+    showZoomControlsBriefly();
+  }, [handleZoomOutHook, showZoomControlsBriefly]);
+
+  // Reset zoom handler
+  const handleZoomReset = useCallback(() => {
+    resetZoom();
+    showZoomControlsBriefly();
+  }, [resetZoom, showZoomControlsBriefly]);
+
+  // Clean up zoom controls timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (zoomControlsTimeoutRef.current) {
+        clearTimeout(zoomControlsTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Quiet resume: Seek to saved position once metadata is loaded
   useEffect(() => {
@@ -408,11 +497,26 @@ export default function VideoPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-lg bg-black">
+          <div 
+            ref={videoContainerRef}
+            className="relative overflow-hidden rounded-lg bg-black"
+            style={{ 
+              minHeight: '400px',
+              touchAction: isCoarsePointer ? 'none' : 'auto',
+            }}
+            onTouchStart={isCoarsePointer ? handleTouchStartWrapper : undefined}
+            onTouchMove={isCoarsePointer ? onTouchMove : undefined}
+            onTouchEnd={isCoarsePointer ? onTouchEnd : undefined}
+          >
             <video
               ref={videoRef}
               controls
               className="aspect-video w-full"
+              style={{
+                transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
+                transformOrigin: 'center center',
+                transition: 'transform 0.1s ease-out',
+              }}
               src={videoUrl}
               poster={thumbnailUrl}
               preload="metadata"
@@ -422,6 +526,51 @@ export default function VideoPage() {
             >
               Your browser does not support the video tag.
             </video>
+
+            {/* Mobile Zoom Controls */}
+            {isCoarsePointer && (
+              <div 
+                className={`absolute bottom-20 right-4 flex flex-col gap-2 transition-opacity duration-300 ${
+                  showZoomControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+              >
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={handleZoomIn}
+                  disabled={zoomScale >= MAX_ZOOM}
+                  className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
+                >
+                  <ZoomIn className="h-5 w-5" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={handleZoomOut}
+                  disabled={zoomScale <= MIN_ZOOM}
+                  className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
+                >
+                  <ZoomOut className="h-5 w-5" />
+                </Button>
+                {zoomScale > MIN_ZOOM && (
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={handleZoomReset}
+                    className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
+                  >
+                    <Minimize2 className="h-5 w-5" />
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Zoom indicator */}
+            {isCoarsePointer && zoomScale > MIN_ZOOM && (
+              <div className="absolute top-4 left-4 rounded-full bg-black/70 px-3 py-1 text-xs text-white backdrop-blur-sm">
+                {(zoomScale * 100).toFixed(0)}%
+              </div>
+            )}
           </div>
         )}
 

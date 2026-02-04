@@ -1,11 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Remove the FAQ page entirely and eliminate all UI navigation links that point to it.
+**Goal:** Publish the owner-provided “Xocial.Stream — FAQ” copy verbatim on the in-app FAQ page.
 
 **Planned changes:**
-- Delete the `/faq` route from the frontend route tree and remove the `FAQPage` import/usage so the app no longer registers or serves an FAQ page.
-- Remove all UI links to `/faq`, including the Footer FAQ link and any Support page link pointing to `/faq`.
-- Ensure that directly visiting `/faq` no longer shows FAQ content and instead results in a not-found experience or a redirect to the home page.
+- Replace the existing FAQ page heading and all existing FAQ questions/answers in `frontend/src/pages/FAQPage.tsx` with the owner-provided “Xocial.Stream — FAQ” content, displayed exactly word-for-word (including punctuation, capitalization, and paragraph breaks) and in the specified question order.
+- Implement a lightweight safeguard by defining the full FAQ content once as a single immutable in-file constant (single source of truth) and rendering from that constant without any transformation that could alter characters.
 
-**User-visible outcome:** The app no longer has an FAQ page; users won’t see any FAQ navigation links, and visiting `/faq` will not display FAQ content (it will redirect home or show a not-found page with a way back to Home).
+**User-visible outcome:** The in-app FAQ page shows the exact “Xocial.Stream — FAQ” heading and the complete FAQ accordion content exactly as provided by the owner, with no leftover prior FAQ text.

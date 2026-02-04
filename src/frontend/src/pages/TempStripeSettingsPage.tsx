@@ -7,15 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Save, X, Lock, ShieldCheck, CheckCircle2, Trash2 } from 'lucide-react';
+import { Loader2, Save, X, Lock, ShieldCheck, CheckCircle2, Trash2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminSession } from '../lib/adminSession';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function TempStripeSettingsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { identity } = useInternetIdentity();
   const { data: isAdmin, isLoading: isAdminLoading } = useVerifyAdminAccess();
-  const { data: savedConfig, isLoading: isLoadingConfig } = useGetFullStripeConfig();
+  const { data: savedConfig, isLoading: isLoadingConfig, refetch: refetchConfig } = useGetFullStripeConfig();
   const saveConfig = useUpdateStripeConfig();
 
   const [publishableKey, setPublishableKey] = useState('');
@@ -23,6 +25,7 @@ export default function TempStripeSettingsPage() {
   const [basicPlanUrl, setBasicPlanUrl] = useState('');
   const [creatorPlanUrl, setCreatorPlanUrl] = useState('');
   const [proPlanUrl, setProPlanUrl] = useState('');
+  const [isReconnecting, setIsReconnecting] = useState(false);
 
   const isAuthenticated = !!identity;
   const currentPrincipal = identity?.getPrincipal().toString();
@@ -46,6 +49,30 @@ export default function TempStripeSettingsPage() {
       setProPlanUrl(savedConfig.proPlanUrl || '');
     }
   }, [savedConfig]);
+
+  const handleReconnect = async () => {
+    setIsReconnecting(true);
+    try {
+      console.log('🔄 Reconnecting to backend - forcing fresh Stripe config reload...');
+      
+      // Invalidate and refetch the full Stripe config from backend
+      await queryClient.invalidateQueries({ queryKey: ['fullStripeConfig'] });
+      const result = await refetchConfig();
+      
+      if (result.data) {
+        console.log('✅ Stripe configuration reloaded from backend');
+        toast.success('Configuration reloaded successfully from backend');
+      } else {
+        console.log('⚠️ No configuration found in backend');
+        toast.info('No configuration found in backend storage');
+      }
+    } catch (error) {
+      console.error('❌ Error reconnecting to backend:', error);
+      toast.error('Failed to reload configuration from backend');
+    } finally {
+      setIsReconnecting(false);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -194,6 +221,43 @@ export default function TempStripeSettingsPage() {
             </AlertDescription>
           </Alert>
         )}
+
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Reconnect Configuration</CardTitle>
+                <CardDescription>
+                  Reload Stripe configuration from backend storage
+                </CardDescription>
+              </div>
+              <Button
+                onClick={handleReconnect}
+                disabled={isReconnecting || isLoadingConfig}
+                variant="outline"
+                size="sm"
+              >
+                {isReconnecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Reloading...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Reload from Backend
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Click "Reload from Backend" to force a fresh fetch of your Stripe configuration from backend storage. 
+              This will repopulate all fields with the currently stored values, ignoring any cached state.
+            </p>
+          </CardContent>
+        </Card>
 
         <Card className="mb-6">
           <CardHeader>

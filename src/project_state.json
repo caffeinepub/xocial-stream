@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 156,
-  "summary": "Xocial.Stream is live on ICP via Caffeine and has evolved into a lightweight, calm video-sharing app with a strict 'no clutter' principle and explicit manager approval required before builds. Key UX/features implemented and deployed through iterations include: persisted upload status states (Uploading→Processing→Live), Continue Watching (quiet resume), search + categories discovery, automatic + manual thumbnails, and deletion permissions (users delete only their own videos; admin can delete any). Sharing UX was iterated and ultimately kept minimal (Copy Link + Timestamp only), with external social share + QR removed. Admin-only tooling is grouped under an Admin dropdown (Principal ID, Architecture, Payment Settings) and admin visibility remains identity/session dependent across browsers (Chrome vs Edge). Stripe setup remained fragile at times (save/load failures, pricing page 'Payment configuration not available'), leading to temporary Stripe Settings access paths; paid plan buttons were eventually restored to working. Footer/navigation direction continued toward a minimal TuoraSystems-branded footer (Pricing/Terms/Privacy/Support) and removing Architecture from public UI; Community & Ethics Policy is intended to be linked contextually (e.g., Upload/Pricing) rather than duplicated in the footer. Pricing copy/heading was updated again with 'Start Free, Grow Limitless. Plans and Pricing Made Simple.' plus homepage tagline 'Upload everything. Share without limits.' and Pro blurb 'Finally, a video platform without storage anxiety. Unlimited video. One simple price.' Creator Plus plan marketing remains restricted to only implemented features (Custom branding + Private collections), deferring analytics/password protection/scheduling promises.",
+  "projectStateVersion": 239,
+  "summary": "Xocial.Stream (formerly experimenting with HyperTubeic/Xocial.social naming during drafts) is now positioned and branded as a calm, lightweight, human-first video‑sharing platform on ICP, focused on upload + watch + simple discovery without algorithmic engagement loops. Pricing/Plans direction is now explicitly: Free ($0; 10 uploads/month; 720p; basic player; community) with the Free headline/slogan “Unlimited Possibility Starts Here” / “Unlimited possibility begins with your first upload.”; Pro ($12.99) with the Pro messaging “Unlimited Video. One Simple Price.” and “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”; Creator Plus ($24.99) marketed only with currently supported items (Custom branding + Private collections). The pricing page headline/slogan remains “Start Free, Grow Limitless. Plans and Pricing Made Simple.” Reliability concerns remain: draft/live publish can desync and temporarily hide Stripe configuration and videos; Stripe often appears disconnected after builds and requires safe reconnection steps. Legal pages (Terms/Privacy/Support) must display owner-provided text verbatim with zero rewriting, and public UI continues shifting away from Architecture links toward Pricing/Terms/Privacy/Support.",
   "existing_features": [
     {
       "id": "IF-1",
@@ -333,26 +333,32 @@
       "version": 1
     },
     {
-      "id": "feature-remove-the-faq-page-from-the-frontend-by-deleting-the-faq-route-and-removing-the-faqpage-import-usage-so-the-application-no-longer-registers-or-serves-a-faq-page",
-      "title": "Remove the FAQ page from the frontend by deleting the /faq route and removing the FAQPage import/usage so the application no longer registers or serves a FAQ page.",
+      "id": "IF-30",
+      "title": "Mobile in-player pinch-to-zoom and pan controls",
+      "synonyms": [
+        "useVideoPinchPan",
+        "pinch zoom video",
+        "touch pan/zoom"
+      ],
+      "description": "Adds mobile/touch pinch-to-zoom and pan behavior for the video player via a dedicated hook (useVideoPinchPan), enabling two-finger zoom gestures on the video content during playback.",
+      "reqIds": [
+        "AR-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-in-app-faq-page-frontend-src-pages-faqpage-tsx-so-it-displays-the-owner-provided-xocial-stream-faq-content-exactly-word-for-word-including-punctuation-capitalization-and-paragraph-breaks-replacing-all-existing-faq-questions-answers-and-the-page-heading",
+      "title": "Update the in-app FAQ page (frontend/src/pages/FAQPage.tsx) so it displays the owner-provided “Xocial.Stream — FAQ” content exactly word-for-word (including punctuation, capitalization, and paragraph breaks), replacing all existing FAQ questions/answers and the page heading.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-all-navigation-references-to-the-faq-page-from-the-ui-including-the-footer-faq-link-and-the-support-page-link-to-faq",
-      "title": "Remove all navigation references to the FAQ page from the UI, including the Footer FAQ link and the Support page link to /faq.",
+      "id": "feature-add-a-lightweight-safeguard-in-the-faqpage-implementation-so-the-faq-content-is-stored-as-a-single-immutable-in-file-constant-single-source-of-truth-and-rendered-from-that-constant-to-reduce-the-risk-of-accidental-partial-edits-or-content-drift-during-future-ui-refactors",
+      "title": "Add a lightweight safeguard in the FAQPage implementation so the FAQ content is stored as a single immutable in-file constant (single source of truth) and rendered from that constant, to reduce the risk of accidental partial edits or content drift during future UI refactors.",
       "reqIds": [
         "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-that-directly-visiting-the-url-path-faq-no-longer-displays-faq-content-instead-the-user-should-see-a-not-found-experience-or-be-redirected-to-the-home-page",
-      "title": "Ensure that directly visiting the URL path \"/faq\" no longer displays FAQ content; instead, the user should see a not-found experience or be redirected to the home page.",
-      "reqIds": [
-        "REQ-3"
       ],
       "version": 1
     }
@@ -551,14 +557,86 @@
       "status": "pending"
     },
     {
+      "id": "AR-43",
+      "summary": "Simplify FAQ page by removing some questions/answers (especially over-explaining ICP) per owner preference",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
       "id": "AR-44",
       "summary": "Add a short, human-readable trust-signal explaining ICP/decentralized storage benefits (\"Powered by the Internet Computer (ICP)… no single point of failure\"), placed subtly (About page, FAQ, small footer line, and/or How-it-works), not as a headline or crypto/tech brag",
       "reqIds": [],
       "status": "pending"
     },
     {
+      "id": "AR-45",
+      "summary": "Revise/Simplify FAQ content: remove over-technical ICP explanations, frame ICP as a subtle trust-signal focused on user benefits (no single point of failure/Not Big Tech servers), and only publish FAQ changes after manager approval",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
       "id": "AR-46",
-      "summary": "Remove the FAQ page entirely from Xocial.Stream (and remove any related navigation/links)",
+      "summary": "Rewrite/Simplify FAQ page using benefit-first framing (do not sell ICP tech; use as subtle trust signal) and only publish after explicit manager approval",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Remove the FAQ page entirely from public UI (and navigation/routes) if owner decides it is not wanted, rather than rewriting/simplifying it",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Add in-player zoom controls (zoom in/out) for video playback, including during live videos",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Consolidate Stripe Settings UI to a single canonical admin Payment/Stripe Settings page (remove old/duplicate Stripe Settings buttons/pages) to prevent confusion and config overwrites",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Refine mobile in-player zoom controls on video playback; current zoom behavior/UX is not what the owner wanted (no further builds until explicitly approved).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Update Pricing page plan presentation to the new approved plan headlines/slogans and copy: Free headline “Unlimited Possibility Starts Here” + slogan “Unlimited possibility begins with your first upload.”; Pro headline “Unlimited Video. One Simple Price.” + Pro blurb “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”; Creator Plus marketed only with implemented features (Custom branding + Private collections), while keeping main pricing headline “Start Free, Grow Limitless. Plans and Pricing Made Simple.”",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Operational: add a strict ‘no-build unless explicitly approved’ gate and a stability-first process to prevent unintended draft/live changes (especially Stripe/video visibility) and credit waste; treat rebuilds as risky events and enforce one-change-per-publish.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Add simple onboarding/help instructions for signing in with Internet Identity on multiple devices (so users understand how to use the same identity across phone/laptop) without heavy UI clutter",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Restore single responsive scrolling video grid on mobile (remove/undo overly-compact alternate grid so videos aren’t too small)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Rewrite/condense FAQ to 10 must-answer, very simple user-facing instruction questions for everyone (no creator-focused framing), using benefit-first wording; text-only draft for approval before any build/publish",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-57",
+      "summary": "Publish the owner’s final FAQ page content (benefit-first, minimal; avoid over-explaining ICP; no crypto question), using the exact approved text only",
       "reqIds": [],
       "status": "pending"
     }
@@ -704,7 +782,45 @@
     "Decision reaffirmed: keep a single video browsing grid layout with simple scrolling (no mixed standard+compact grid modes or multiple grid types) to preserve lightweight UX.",
     "Decision reaffirmed in conversation: keep a single responsive scrolling video grid (no separate compact-vs-standard grid modes/toggles); the grid simply adapts by screen size.",
     "Marketing/positioning decision: don’t sell ICP as “technology”; sell the user benefit (videos stored on decentralized infrastructure, not Big Tech servers; no single point of failure). Use as a subtle trust signal (About/FAQ/footer/How-it-works), not a headline or crypto pitch.",
-    "FAQ/marketing copy principle reinforced: don’t sell ICP as technology; sell user benefits (decentralized storage/no single point of failure) as a subtle trust signal, not a headline or crypto pitch."
+    "FAQ/marketing copy principle reinforced: don’t sell ICP as technology; sell user benefits (decentralized storage/no single point of failure) as a subtle trust signal, not a headline or crypto pitch.",
+    "FAQ/content direction: don’t sell ICP/tech; sell user benefits (not Big Tech servers, decentralized/no single point of failure) as a subtle trust signal. Keep it short, human, and non-hype; place in FAQ/About/How-it-works/footer line rather than as a headline.",
+    "User request (NO BUILD): rewrite the FAQ to follow the above benefit-first framing and present draft text for owner review/approval before any changes are published.",
+    "Marketing/positioning reminder: don’t sell the technology (ICP/decentralization) as a headline; sell the user benefit. Use ICP only as a short, clear trust signal (\"not on Big Tech servers\", \"no single point of failure\"), placed subtly (About, FAQ, small footer line, How it works), not as a crypto pitch or technical brag.",
+    "Pricing/Plans updated to new structure and copy direction: Free ($0; 10 uploads/month; 720p; basic player; community access), Pro ($12.99; unlimited uploads/storage; 1080p/4K; no ads; no weekly limits; no compression loss; direct links; embeds), Creator Plus ($24.99; only implemented items—Custom branding + Private collections).",
+    "Free plan treated as configured/active (no Stripe URL required); paid tiers use Stripe URLs.",
+    "Continue Watching implemented as quiet resume by persisting per-user playback position per video locally in browser storage and seeking on return.",
+    "Upload clarity implemented as explicit per-video state labels: Uploading → Processing → Live.",
+    "Sharing direction reconfirmed again: keep sharing minimal (Copy Link + Timestamp); remove external social share buttons and QR to avoid clutter/rights concerns.",
+    "Admin UX change applied: group admin-only items under an Admin dropdown; admin visibility remains dependent on Internet Identity session per browser.",
+    "Brand naming direction shifted from Xocial.social toward Xocial.Stream (dot style) for the video-sharing app; Xocial.social discussed as a potential separate hub/community brand.",
+    "Pricing/plan display direction updated in-conversation to new copy: Free ($0; 10 uploads/month; 720p; basic player; community access) with slogans; Pro ($12.99; unlimited uploads/storage; 1080p/4K; no ads; no weekly limits; no compression loss; direct links; embeds) with Pro tagline; Creator Plus ($24.99) marketed only with implemented features (Custom branding + Private collections) and no promises of unbuilt features.",
+    "Community & Ethics Policy placement direction: keep as footer link and also show a contextual reminder/link on Upload and Pricing surfaces; remove duplicate policy link from footer if redundant.",
+    "Share UX direction re-iterated during this conversation: prefer minimal sharing to avoid rights/clutter concerns; remove external share (LinkedIn/Twitter) and QR, retaining only internal share actions (Copy Link + Timestamp).",
+    "Operational note: Stripe configuration can appear disconnected after a build/publish (pricing shows missing config), but can often be restored quickly by reconnecting/re-saving Stripe keys + plan URLs via Payment Settings/Stripe Settings; treat builds as risky events and minimize publishes when Stripe is working.",
+    "Operational support protocol agreed: when Stripe appears disconnected after a build/publish, user will report using a clear prefix like \"STRIPE ISSUE:\" describing symptoms (e.g., payment config missing / buttons not working) and explicitly stating \"no build\" if explanation-only is desired, to speed up safe reconnection guidance.",
+    "User request clarified: in-player zoom in/out is desired specifically for mobile while watching movies (no live-stream context); no build yet.",
+    "Decision/constraint: in-player zoom (zoom in/out) will not be implemented as an app feature; mobile zoom should rely on OS/browser gestures (pinch-to-zoom), fullscreen, and device rotation instead.",
+    "Stripe Settings UX drift occurred in practice: multiple Stripe Settings entry points (original + Temp + header buttons) can coexist; direction is to keep only one canonical admin Stripe Settings surface long-term.",
+    "Stripe free-tier configuration confirmed: Free plan does not need a Stripe URL; only paid tiers (Pro, Creator Plus) require checkout URLs, and keys/URLs must be in the same Stripe mode (test vs live).",
+    "Free plan is explicitly treated as active/configured in the UI (shows as active/sign-up) without requiring a Stripe URL; only paid tiers require Stripe checkout URLs.",
+    "Upload UX enhancement shipped: explicit per-video status states are displayed as Uploading → Processing → Live (backend state + minimal UI label).",
+    "Continue Watching shipped: playback resumes quietly from last position (stored locally in the browser per user/video).",
+    "Mobile/touch video player interaction: a dedicated hook (useVideoPinchPan) implements pinch-to-zoom and pan gestures for in-player zoom behavior.",
+    "Operational support protocol reaffirmed: when Stripe appears disconnected after a build/publish, user will report with prefix \"STRIPE ISSUE:\" and request reconnect guidance with \"no build\" when explanation-only is desired.",
+    "Pricing/Plans copy direction updated: Free plan headline/slogan “Unlimited Possibility Starts Here” / “Unlimited possibility begins with your first upload.”; Pro headline “Unlimited Video. One Simple Price.” plus Pro blurb “Finally, a video platform without storage anxiety. Unlimited video. One simple price.”; Creator Plus must advertise only implemented features (Custom branding + Private collections).",
+    "Marketing/FAQ/positioning rule reinforced: don’t sell ‘ICP’/decentralization as technology; communicate it as a subtle trust-signal focused on user benefits (not on Big Tech servers / no single point of failure), placed in secondary surfaces (About/FAQ/How-it-works/footer line), not as a headline or crypto pitch.",
+    "Observed workflow reality: draft/live isolation can fail in practice—small ‘draft’ changes have sometimes impacted live frontend, temporarily hiding Stripe config/videos until republish/resync; stability requires minimizing publishes and using explicit approval gates.",
+    "Operational documentation added under frontend/docs/ops/, including a live smoke-check checklist (live-smoke-check.md) and a rebuild/republish runbook (rebuild-republish-runbook.md) to standardize safer deploy verification and reduce draft/live desync risk.",
+    "Operational reality reinforced: draft builds/publishes can still impact the live frontend (draft/live isolation is not a hard vault), so every build/publish is inherently risky; stability comes from minimizing publishes and doing one approved change per publish.",
+    "Share UX decision (reconfirmed/implemented in this conversation): remove external social share options (LinkedIn/Twitter) and QR share; keep sharing minimal (Copy Link + Timestamp).",
+    "Confirmed the current live/shareable Caffeine domain URL to use (including for Add-to-Home-Screen/PWA icon testing): xocial-stream-dd4.caffeine.xyz",
+    "Share dropdown/share options direction changed again: external social share links were added (Twitter/LinkedIn) and QR code sharing was added, but then Twitter, LinkedIn, and QR were removed per owner preference; final sharing should remain minimal (Copy Link + Timestamp only).",
+    "Stripe admin UX now includes (at times) multiple entry points (original Stripe Settings + Temp Stripe Settings + Admin dropdown); duplicates can appear when admin visibility returns, creating confusion—direction is to keep only one canonical Stripe Settings long-term.",
+    "Footer direction reiterated/implemented again: remove Community & Ethics Policy from footer (keep policy link contextually on Upload and Pricing); footer should be © 2026 TuoraSystems — All rights reserved. Built by TuoraSystems with links Pricing/Terms/Privacy/Support; remove Architecture links from public UI.",
+    "User device context for A2HS icon debugging: issue reproduced on Android using Chrome (home-screen icon still shows old/default icon even after using the correct live Caffeine domain).",
+    "FAQ/marketing framing rule reiterated: don’t sell ICP/decentralization as technology; communicate the user benefit (“not on Big Tech servers / no single point of failure”) as a subtle trust-signal in secondary surfaces (About/FAQ/footer/How-it-works), not as a headline or crypto pitch; remove/avoid “Is this a crypto platform?”-style FAQ items per owner preference.",
+    "Owner provided final FAQ page copy (must be used verbatim; NO BUILD requested). Notable FAQ positioning: Xocial.Stream described as a private-by-default personal video uploading/streaming space (no public feed/discovery unless sharing a link), includes plan limits (Free 10 uploads/month; Pro/Creator Plus unlimited), and includes a short ICP explainer section.",
+    "Owner provided FINAL FAQ page copy for Xocial.Stream; must be used verbatim word-for-word with zero rewriting/additions/removals; user explicitly requested NO BUILD while reviewing/confirming this text."
   ],
   "known_issues": [
     "Security/ops: backend/main.mo currently hardcodes live Stripe publishable/secret keys and live checkout URLs in the initial canister state; secrets should not be committed or exposed via getStripeConfigAndUrls() (which currently returns secretKey to any caller).",
@@ -778,7 +894,38 @@
     "Process/control reliability: builds/deploys were triggered even when the user explicitly said \"NO BUILD\"/\"stop\", wasting credits and causing unwanted live/draft changes; need a hard permission gate so no build/deploy can occur without explicit manager approval.",
     "Operational risk acknowledged: every build/publish can introduce regressions or live/draft desync; stability requires minimizing rebuilds and using a strict change-approval + one-change-per-publish discipline.",
     "Process/control reliability: assistant triggered a build (FAQ page/content) without explicit manager approval/permission; reinforces need for a hard permission gate before any build/publish actions.",
-    "Process/content: FAQ page content was created/updated without waiting for explicit manager approval; user wants no builds/changes unless explicitly approved."
+    "Process/content: FAQ page content was created/updated without waiting for explicit manager approval; user wants no builds/changes unless explicitly approved.",
+    "Stripe settings/config can appear saved but later load blank or fail to save; Pricing page may show “Payment configuration not available” until frontend↔backend config fetch is re-synced.",
+    "Operational reliability: draft/publish actions can unexpectedly affect live frontend and temporarily desync videos/Stripe config until republish/relink; publish may require multiple attempts.",
+    "Admin visibility inconsistency across browsers/devices persists due to separate Internet Identity sessions/caching (e.g., admin present on Chrome but missing on Edge).",
+    "Operational reliability concern reiterated: draft builds/publishes can still affect live unexpectedly; user reports needing multiple publish attempts and experiencing temporary disappearance/desync of Stripe config and videos until republish/resync.",
+    "Stripe config UX regression observed again: keys/plan URLs can appear saved but later load blank and pricing can show 'Payment configuration not available' after builds/publishes, requiring restoration/resync.",
+    "Content integrity risk reiterated for legal pages: Terms/Privacy/Support content was overwritten/cleared and must always display owner-provided text verbatim; repeated cycles risk losing/altering copy.",
+    "Stripe reliability: after builds/publishes, Stripe can appear to disconnect (keys/plan URLs not loaded; pricing shows config missing), even if it can often be restored by re-saving/reconnecting settings. This recurring disconnect during builds is a reliability risk.",
+    "Stripe/admin UX drift: multiple Stripe Settings buttons/pages can appear simultaneously (original + temp), causing confusion about which config is authoritative and increasing risk of overwrites/desync.",
+    "Mobile in-player zoom feature was deployed but does not match desired behavior/UX; owner reports it is 'not quite what I wanted' and requests no further builds right now.",
+    "Cross-browser/admin-session inconsistency persists (Chrome vs Edge vs mobile): admin UI and related controls (e.g., delete buttons, Stripe settings access) can appear/disappear depending on which Internet Identity session is active in that browser.",
+    "Stripe settings/config visibility can still appear to disappear after builds/publishes (fields show blank; pricing shows payment configuration missing) even if values can be restored by re-entering/saving in live mode; indicates fragile live↔draft/publish linkage and/or fetch wiring sensitivity.",
+    "Build/publish workflow reliability issue: users reported needing multiple Publish attempts for changes to actually go live; undermines confidence in draft/live separation.",
+    "Stripe can appear disconnected after a build (pricing shows missing config / buttons not working) even when it was previously saved; user requests safe reconnection steps with no build/deploy.",
+    "Stripe reliability symptom during live usage: Pricing may show “Payment configuration not available” and/or Pro/Creator buttons act like placeholders even after keys/URLs were saved; this can recur after builds/publishes and may require re-saving/rebinding Stripe config in live mode.",
+    "Process reliability: repeated builds/publishes occurred even when the user said NO BUILD/stop, leading to credit waste and unintended live changes; requires a hard permission gate.",
+    "Stripe reliability symptom observed again: after builds/publishes, Stripe keys/plan URLs may appear blank/disconnected and payments show errors like “Payment configuration not available” until the config is re-saved/relinked; rebuilds often temporarily restore but indicates persistent live↔draft/config binding fragility.",
+    "Operational reliability: user reports needing multiple Publish attempts (e.g., ~6 times) to get changes live again; publish pipeline remains inconsistent even when the app itself is stable.",
+    "PWA/Add-to-Home-Screen icon issue: despite icon link setup work, user reports Xocial.Stream home-screen icon still does not show when adding to home screen (still shows default browser icon); likely manifest/apple-touch-icon/favicon path/caching issue.",
+    "Live/URL visibility issue reported: user says the live URL is “not showing” (context suggests confusion/visibility problem around the app’s live URL / home-screen add flow). Needs clarification which URL (live .caffeine.xyz vs custom domain vs app route) and whether it’s a caching/UI display issue.",
+    "UX/PWA: User reports the live app URL needed for Add-to-Home-Screen (to get the Xocial.Stream logo icon) is 'not showing'/not easily accessible on phone; needs clarification of exact live URL and verification of A2HS flow + caching behavior.",
+    "Custom domain confusion: user cannot access https://xocial.stream (likely not configured/propagated); needs to use the live .caffeine.xyz URL (or correctly configure DNS/custom-domain in Caffeine) for Add-to-Home-Screen/PWA icon testing and sharing.",
+    "Live/custom-domain confusion clarified: the correct current live Caffeine URL is xocial-stream-dd4.caffeine.xyz (use this for Add-to-Home-Screen/PWA icon verification and sharing when https://xocial.stream is not available).",
+    "PWA/Add-to-Home-Screen icon still shows the old/default icon even after re-adding from the correct live URL (xocial-stream-dd4.caffeine.xyz); likely mobile OS/browser caching or icon/manifest link resolution issue. Needs a clear cache-bust strategy and verification of favicon/apple-touch-icon/manifest paths and headers.",
+    "PWA/Add-to-Home-Screen icon still shows old/default logo even after using the correct live URL (xocial-stream-dd4.caffeine.xyz) and re-adding; likely mobile OS/browser icon caching and/or missing cache-busting/versioned icon/manifest URLs (apple-touch-icon/favicon/manifest).",
+    "Android Add-to-Home-Screen icon may continue showing an old/default icon even after correct favicon/apple-touch-icon links are added; OS-level icon caching can require deleting the shortcut, restarting the device, and re-adding from the exact live URL.",
+    "Stripe reliability remains sensitive to builds/publishes: after a build, Stripe config/plan URLs can appear blank/disconnected and Pricing can show “Payment configuration not available”; often recoverable by re-saving keys/URLs in live Payment Settings, but this undermines confidence.",
+    "Android/Chrome Add-to-Home-Screen icon caching: even after adding correct favicon/apple-touch-icon/manifest links and re-adding from the live Caffeine URL (xocial-stream-dd4.caffeine.xyz), the home-screen icon may still show the old/default icon; requires stronger cache-busting/versioned icon URLs and/or OS-level steps (delete shortcut, restart device, clear Chrome site data) to refresh.",
+    "Mobile UI: Videos page is showing an alternate/overly-compact grid on mobile, making thumbnails too small; needs to revert to the single responsive scrolling grid layout.",
+    "Legal pages (Terms/Privacy/Support) content integrity/regression: user reports their provided verbatim text sometimes does not appear after deploys and/or is overwritten by other copy, despite “saved successfully,” leading to repeated cycles of clearing/re-adding.",
+    "Stripe admin UX/config reliability: even with keys/URLs entered, Payment Settings can still show “Failed to save Stripe configuration,” and live Pricing can show “Payment configuration not available” until a rebuild/redeploy; indicates remaining frontend↔backend config fetch/validation wiring fragility across live/draft publishes.",
+    "FAQ page: owner has now explicitly approved adding/publishing the provided FINAL FAQ copy verbatim (word-for-word). Ensure the in-app FAQ content matches exactly with zero rewriting and does not get overwritten by defaults during deploys."
   ],
   "isFixRequest": false,
   "generatedImages": [],

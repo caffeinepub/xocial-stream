@@ -79,10 +79,11 @@ export default function PricingPage() {
       return;
     }
 
-    // Get the checkout URL for this paid plan
-    const checkoutUrl = stripeConfig[urlKey];
+    // Get the checkout URL for this paid plan and trim whitespace
+    const checkoutUrl = stripeConfig[urlKey]?.trim();
 
-    if (!checkoutUrl) {
+    // Check if URL is empty or missing
+    if (!checkoutUrl || checkoutUrl.length === 0) {
       return;
     }
 
@@ -90,8 +91,12 @@ export default function PricingPage() {
     window.location.href = checkoutUrl;
   };
 
-  // Check if Stripe is fully configured for paid plans
-  const isStripeConfigured = stripeConfig?.proPlanUrl && stripeConfig?.creatorPlanUrl;
+  // Check if Stripe is fully configured for paid plans (trim and check length)
+  const proPlanUrlTrimmed = stripeConfig?.proPlanUrl?.trim();
+  const creatorPlanUrlTrimmed = stripeConfig?.creatorPlanUrl?.trim();
+  const isStripeConfigured = 
+    proPlanUrlTrimmed && proPlanUrlTrimmed.length > 0 && 
+    creatorPlanUrlTrimmed && creatorPlanUrlTrimmed.length > 0;
   const hasConfigError = !!error || (!isLoadingStripe && !isStripeConfigured);
 
   return (
@@ -144,7 +149,8 @@ export default function PricingPage() {
           {plans.map((plan) => {
             const isPaidPlan = !plan.isFree;
             const isDisabled = isPaidPlan && (isLoadingStripe || hasConfigError);
-            const checkoutUrl = plan.urlKey && stripeConfig ? stripeConfig[plan.urlKey] : null;
+            const checkoutUrl = plan.urlKey && stripeConfig ? stripeConfig[plan.urlKey]?.trim() : null;
+            const hasValidUrl = checkoutUrl && checkoutUrl.length > 0;
 
             return (
               <Card
@@ -188,11 +194,11 @@ export default function PricingPage() {
                     className="w-full bg-gradient-to-r from-primary via-primary/90 to-primary text-base font-semibold shadow-md transition-all hover:shadow-lg disabled:opacity-50"
                     size="lg"
                     onClick={() => handlePlanClick(plan.name, plan.isFree, plan.urlKey)}
-                    disabled={isDisabled}
+                    disabled={isDisabled || (isPaidPlan && !hasValidUrl)}
                   >
                     {isLoadingStripe && isPaidPlan
                       ? 'Loading...'
-                      : isDisabled
+                      : isDisabled || (isPaidPlan && !hasValidUrl)
                         ? 'Unavailable'
                         : plan.isFree
                           ? 'Get Started Free'

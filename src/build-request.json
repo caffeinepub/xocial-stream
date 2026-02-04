@@ -1,69 +1,53 @@
 {
   "kind": "build_request",
-  "title": "Remove FAQ page and all FAQ navigation links",
+  "title": "Publish final FAQ page copy verbatim on the in-app FAQ page",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove the FAQ page from the frontend by deleting the /faq route and removing the FAQPage import/usage so the application no longer registers or serves a FAQ page.",
+      "text": "Update the in-app FAQ page (frontend/src/pages/FAQPage.tsx) so it displays the owner-provided “Xocial.Stream — FAQ” content exactly word-for-word (including punctuation, capitalization, and paragraph breaks), replacing all existing FAQ questions/answers and the page heading.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "CAN YOU REMOVE FAQ ALTOGETHER"
+          "THIS IS OUR EXACT FAQ PAGE OK . I WANT EXACT WORD FOR WORD. DONT DARE CHANGE OR ADD ANYTHING TO IT . NOT A NUMBER OR A LETTER  DO YOU HEAR ME",
+          "GREAT PLEASE ADD."
         ]
       },
       "acceptanceCriteria": [
-        "frontend/src/App.tsx no longer imports FAQPage",
-        "frontend/src/App.tsx route tree no longer defines a route for path \"/faq\"",
-        "The app builds successfully with no unused/failed imports related to FAQPage"
+        "The FAQ page H1 heading renders exactly: “Xocial.Stream — FAQ”",
+        "The FAQ accordion contains exactly these questions in this order, with answers displayed exactly as provided by the owner (no added/removed/rewritten text):\n1) What is Xocial.Stream?\n2) How is this different from YouTube or other platforms?\n3) How does Xocial.Stream work?\n4) Are my uploaded videos safe? Will I lose them if something crashes?\n5) Can other people see my videos?\n6) Do you compress my videos?\n7) Are there upload limits?\n8) What video formats can I upload?\n9) What content is allowed on Xocial.Stream?\n10) What if my video gets blocked?\n11) How do I share my videos?\n12) Can I delete my videos?\n13) Can I cancel my subscription anytime?\n14) Is there a mobile app?\n15) What is the Internet Computer (ICP)?",
+        "All paragraph breaks and the upload-limits plan list (Free Plan / Pro / Creator Plus) appear as separate lines/paragraphs matching the provided text (no extra bullets, numbering, or formatting changes that alter the text)",
+        "No other FAQ content remains from the current FAQPage.tsx implementation"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Remove all navigation references to the FAQ page from the UI, including the Footer FAQ link and the Support page link to /faq.",
+      "text": "Add a lightweight safeguard in the FAQPage implementation so the FAQ content is stored as a single immutable in-file constant (single source of truth) and rendered from that constant, to reduce the risk of accidental partial edits or content drift during future UI refactors.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "CAN YOU REMOVE FAQ ALTOGETHER"
+          "DONT DARE CHANGE OR ADD ANYTHING TO IT . NOT A NUMBER OR A LETTER"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/src/components/Footer.tsx no longer renders a link to \"/faq\"",
-        "frontend/src/pages/SupportPage.tsx no longer renders a link to \"/faq\"",
-        "No other visible navigation element links to \"/faq\""
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Ensure that directly visiting the URL path \"/faq\" no longer displays FAQ content; instead, the user should see a not-found experience or be redirected to the home page.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "CAN YOU REMOVE FAQ ALTOGETHER"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Visiting \"/faq\" does not render the previous FAQ accordion content",
-        "The user is either redirected to \"/\" or shown a not-found page with a clear path back to Home"
+        "FAQ content is defined once (single constant) and rendered from that constant without re-typing the copy across multiple JSX fragments",
+        "No transformation logic (e.g., auto-trimming, auto-capitalization, markdown conversion) changes the literal displayed characters of the provided FAQ text"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/components/ui (read-only Shadcn components).",
-    "Do not change backend canister interfaces or storage as part of removing the FAQ."
+    "Do not modify the FAQ copy in any way (no rewriting, no additions, no deletions, no punctuation changes).",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Do not add a replacement FAQ page or any new informational page content.",
-    "Do not rewrite Terms, Privacy, Policy, Pricing, or Support page copy beyond removing FAQ references."
+    "Do not change any other static pages (Terms/Privacy/Support/Pricing/etc.).",
+    "Do not add new FAQ questions, sections, CTAs, or navigation items beyond rendering the provided FAQ text."
   ],
   "imageRequirements": {
     "required": [],

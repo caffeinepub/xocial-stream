@@ -487,26 +487,52 @@ export function useVerifyAdminAccess() {
 /**
  * Hook to fetch public Stripe configuration from backend (excludes secret key)
  * Used by public pages like PricingPage to get checkout URLs
+ * Hardened to return safe defaults on error and avoid throwing during initialization
  */
 export function useGetPublicStripeConfig() {
-  const { actor } = useActor();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<StripeConfigAndUrls>({
     queryKey: ['publicStripeConfig'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      console.log('Fetching public Stripe configuration from backend...');
-      const config = await actor.getPublicStripeConfigAndUrls();
-      console.log('✅ Public Stripe configuration loaded:', {
-        hasBasicPlanUrl: !!config.basicPlanUrl,
-        hasCreatorPlanUrl: !!config.creatorPlanUrl,
-        hasProPlanUrl: !!config.proPlanUrl,
-      });
-      return config;
+      if (!actor) {
+        // Return safe default shape instead of throwing
+        return {
+          publishableKey: undefined,
+          secretKey: undefined,
+          basicPlanUrl: undefined,
+          creatorPlanUrl: undefined,
+          proPlanUrl: undefined,
+          subscriptionsEnabled: false,
+          defaultPricing: undefined,
+        };
+      }
+      try {
+        console.log('Fetching public Stripe configuration from backend...');
+        const config = await actor.getPublicStripeConfigAndUrls();
+        console.log('✅ Public Stripe configuration loaded:', {
+          hasBasicPlanUrl: !!config.basicPlanUrl,
+          hasCreatorPlanUrl: !!config.creatorPlanUrl,
+          hasProPlanUrl: !!config.proPlanUrl,
+        });
+        return config;
+      } catch (error) {
+        console.error('Error fetching public Stripe config:', error);
+        // Return safe default shape on error
+        return {
+          publishableKey: undefined,
+          secretKey: undefined,
+          basicPlanUrl: undefined,
+          creatorPlanUrl: undefined,
+          proPlanUrl: undefined,
+          subscriptionsEnabled: false,
+          defaultPricing: undefined,
+        };
+      }
     },
-    enabled: !!actor,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    enabled: !!actor && !actorFetching,
+    staleTime: 0, // Always refetch on mount to get latest config
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -535,7 +561,7 @@ export function useGetFullStripeConfig() {
       return config;
     },
     enabled: !!actor,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 0, // Always refetch on mount to get latest config
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

@@ -1,72 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove FAQ page and all FAQ navigation links",
+  "title": "Publish owner-provided Xocial.Stream FAQ copy verbatim",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove the FAQ route registration and all FAQPage imports/usages so the app no longer serves a FAQ page.",
+      "summary": "Replace the existing FAQ page heading and accordion content with the owner-provided “Xocial.Stream — FAQ” copy rendered verbatim, preserving order and paragraph breaks.",
       "acceptanceCriteria": [
-        "frontend/src/App.tsx no longer imports FAQPage",
-        "frontend/src/App.tsx route tree no longer defines a route for path \"/faq\"",
-        "The app builds successfully with no unused/failed imports related to FAQPage"
+        "The FAQ page H1 heading renders exactly: “Xocial.Stream — FAQ”",
+        "The FAQ accordion contains exactly these questions in this order, with answers displayed exactly as provided by the owner (no added/removed/rewritten text):\n1) What is Xocial.Stream?\n2) How is this different from YouTube or other platforms?\n3) How does Xocial.Stream work?\n4) Are my uploaded videos safe? Will I lose them if something crashes?\n5) Can other people see my videos?\n6) Do you compress my videos?\n7) Are there upload limits?\n8) What video formats can I upload?\n9) What content is allowed on Xocial.Stream?\n10) What if my video gets blocked?\n11) How do I share my videos?\n12) Can I delete my videos?\n13) Can I cancel my subscription anytime?\n14) Is there a mobile app?\n15) What is the Internet Computer (ICP)?",
+        "All paragraph breaks and the upload-limits plan list (Free Plan / Pro / Creator Plus) appear as separate lines/paragraphs matching the provided text (no extra bullets, numbering, or formatting changes that alter the text)",
+        "No other FAQ content remains from the current FAQPage.tsx implementation"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Remove the FAQPage import and delete the /faq route definition from the TanStack Router route tree so the application no longer registers the FAQ route."
-        },
-        {
           "path": "frontend/src/pages/FAQPage.tsx",
-          "operation": "delete",
-          "description": "Delete the FAQPage implementation file to fully remove the FAQ page from the frontend codebase and avoid any accidental future imports."
+          "operation": "modify",
+          "description": "Replace the current heading and all existing FAQ items with the owner-provided final “Xocial.Stream — FAQ” content from msg-1, ensuring the H1 is exactly “Xocial.Stream — FAQ” and the accordion questions match the required 15-question order. Use the existing shadcn-ui Accordion components (Accordion/AccordionItem/AccordionTrigger/AccordionContent) to present the FAQ; Verify the component's usage instructions before implementing. Render answers in a way that preserves owner-provided punctuation, capitalization, and paragraph breaks exactly (e.g., literal text with preserved newlines), and remove any old questions/answers from the current file."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Remove all visible navigation links that reference the FAQ page.",
+      "summary": "Add an in-file single-source-of-truth constant for the FAQ copy and render exclusively from it without transforming the literal characters.",
       "acceptanceCriteria": [
-        "frontend/src/components/Footer.tsx no longer renders a link to \"/faq\"",
-        "frontend/src/pages/SupportPage.tsx no longer renders a link to \"/faq\"",
-        "No other visible navigation element links to \"/faq\""
+        "FAQ content is defined once (single constant) and rendered from that constant without re-typing the copy across multiple JSX fragments",
+        "No transformation logic (e.g., auto-trimming, auto-capitalization, markdown conversion) changes the literal displayed characters of the provided FAQ text"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Footer.tsx",
+          "path": "frontend/src/pages/FAQPage.tsx",
           "operation": "modify",
-          "description": "Remove the Footer navigation Link that points to \"/faq\" (and any separators adjacent to it) so the FAQ is no longer reachable from the footer."
-        },
-        {
-          "path": "frontend/src/pages/SupportPage.tsx",
-          "operation": "modify",
-          "description": "Remove the Support page Link that points to \"/faq\" and adjust the surrounding sentence to keep the copy intact while eliminating the FAQ reference (do not otherwise rewrite Support page copy)."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Audit and remove any Header navigation element that links to \"/faq\" if present, ensuring there are no remaining UI navigation paths to the removed FAQ route."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Ensure visiting /faq no longer shows FAQ content and instead shows a not-found experience with a clear path back to Home.",
-      "acceptanceCriteria": [
-        "Visiting \"/faq\" does not render the previous FAQ accordion content",
-        "The user is either redirected to \"/\" or shown a not-found page with a clear path back to Home"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/NotFoundPage.tsx",
-          "operation": "create",
-          "description": "Create a NotFoundPage that clearly indicates the page was not found and provides an obvious navigation action back to Home (e.g., a link/button to \"/\")."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Register a catch-all not-found route (e.g., path \"*\") wired to NotFoundPage so that directly visiting \"/faq\" (and any unknown routes) renders the not-found experience rather than the removed FAQ content."
+          "description": "Introduce a single immutable in-file constant (e.g., a frozen/readonly array of { question, answer } entries, plus the exact heading text) containing the owner-provided FAQ copy verbatim, including all intended line breaks for paragraphs and the upload-limits plan list. Update rendering to map over this constant so the copy is not duplicated across JSX and is displayed without any text transformation (no trimming, reflow, markdown parsing, or reformatting)."
         }
       ]
     }
