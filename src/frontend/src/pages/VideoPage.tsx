@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Calendar, Heart, Trash2, Loader2, Tag, Upload, Image as ImageIcon, Shield, AlertTriangle, RefreshCw, CheckCircle, XCircle, ZoomIn, ZoomOut, Minimize2 } from 'lucide-react';
+import { Calendar, Heart, Trash2, Loader2, Tag, Upload, Image as ImageIcon, Shield, AlertTriangle, RefreshCw, CheckCircle, XCircle, ZoomIn, ZoomOut, Minimize2, Maximize2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ShareButton from '../components/ShareButton';
 import { ThumbnailType } from '../backend';
@@ -73,6 +73,7 @@ export default function VideoPage() {
   const [customThumbnailFile, setCustomThumbnailFile] = useState<File | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showZoomControls, setShowZoomControls] = useState(false);
+  const [zoomModeEnabled, setZoomModeEnabled] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoContainerRef = useRef<HTMLDivElement>(null);
@@ -123,6 +124,8 @@ export default function VideoPage() {
 
   // Show zoom controls briefly
   const showZoomControlsBriefly = useCallback(() => {
+    if (!zoomModeEnabled) return;
+    
     setShowZoomControls(true);
     
     if (zoomControlsTimeoutRef.current) {
@@ -132,36 +135,80 @@ export default function VideoPage() {
     zoomControlsTimeoutRef.current = setTimeout(() => {
       setShowZoomControls(false);
     }, 3000);
-  }, []);
+  }, [zoomModeEnabled]);
 
-  // Wrap touch handlers to show controls
+  // Wrap touch handlers to show controls (only when zoom mode is enabled)
   const handleTouchStartWrapper = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
+      if (!zoomModeEnabled) return;
       onTouchStart(e);
       if (e.touches.length === 1) {
         showZoomControlsBriefly();
       }
     },
-    [onTouchStart, showZoomControlsBriefly]
+    [onTouchStart, showZoomControlsBriefly, zoomModeEnabled]
+  );
+
+  const handleTouchMoveWrapper = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (!zoomModeEnabled) return;
+      onTouchMove(e);
+    },
+    [onTouchMove, zoomModeEnabled]
+  );
+
+  const handleTouchEndWrapper = useCallback(
+    (e: React.TouchEvent<HTMLDivElement>) => {
+      if (!zoomModeEnabled) return;
+      onTouchEnd(e);
+    },
+    [onTouchEnd, zoomModeEnabled]
   );
 
   // Zoom in handler
   const handleZoomIn = useCallback(() => {
+    if (!zoomModeEnabled) return;
     handleZoomInHook(ZOOM_STEP);
     showZoomControlsBriefly();
-  }, [handleZoomInHook, showZoomControlsBriefly]);
+  }, [handleZoomInHook, showZoomControlsBriefly, zoomModeEnabled]);
 
   // Zoom out handler
   const handleZoomOut = useCallback(() => {
+    if (!zoomModeEnabled) return;
     handleZoomOutHook(ZOOM_STEP);
     showZoomControlsBriefly();
-  }, [handleZoomOutHook, showZoomControlsBriefly]);
+  }, [handleZoomOutHook, showZoomControlsBriefly, zoomModeEnabled]);
 
   // Reset zoom handler
   const handleZoomReset = useCallback(() => {
+    if (!zoomModeEnabled) return;
     resetZoom();
     showZoomControlsBriefly();
-  }, [resetZoom, showZoomControlsBriefly]);
+  }, [resetZoom, showZoomControlsBriefly, zoomModeEnabled]);
+
+  // Toggle zoom mode
+  const handleToggleZoomMode = useCallback(() => {
+    if (zoomModeEnabled) {
+      // Disabling zoom mode - reset zoom and hide controls
+      resetZoom();
+      setShowZoomControls(false);
+      setZoomModeEnabled(false);
+      toast.info('Zoom mode disabled');
+    } else {
+      // Enabling zoom mode
+      setZoomModeEnabled(true);
+      setShowZoomControls(true);
+      toast.info('Zoom mode enabled - pinch to zoom, drag to pan');
+      
+      // Hide controls after a moment
+      if (zoomControlsTimeoutRef.current) {
+        clearTimeout(zoomControlsTimeoutRef.current);
+      }
+      zoomControlsTimeoutRef.current = setTimeout(() => {
+        setShowZoomControls(false);
+      }, 3000);
+    }
+  }, [zoomModeEnabled, resetZoom]);
 
   // Clean up zoom controls timeout on unmount
   useEffect(() => {
@@ -497,80 +544,100 @@ export default function VideoPage() {
             </CardContent>
           </Card>
         ) : (
-          <div 
-            ref={videoContainerRef}
-            className="relative overflow-hidden rounded-lg bg-black"
-            style={{ 
-              minHeight: '400px',
-              touchAction: isCoarsePointer ? 'none' : 'auto',
-            }}
-            onTouchStart={isCoarsePointer ? handleTouchStartWrapper : undefined}
-            onTouchMove={isCoarsePointer ? onTouchMove : undefined}
-            onTouchEnd={isCoarsePointer ? onTouchEnd : undefined}
-          >
-            <video
-              ref={videoRef}
-              controls
-              className="aspect-video w-full"
-              style={{
-                transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
-                transformOrigin: 'center center',
-                transition: 'transform 0.1s ease-out',
-              }}
-              src={videoUrl}
-              poster={thumbnailUrl}
-              preload="metadata"
-              onTimeUpdate={handleTimeUpdate}
-              onPause={handlePause}
-              onEnded={handleEnded}
-            >
-              Your browser does not support the video tag.
-            </video>
-
-            {/* Mobile Zoom Controls */}
+          <div className="space-y-3">
+            {/* Zoom Mode Toggle (Mobile Only) */}
             {isCoarsePointer && (
-              <div 
-                className={`absolute bottom-20 right-4 flex flex-col gap-2 transition-opacity duration-300 ${
-                  showZoomControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
+              <div className="flex justify-end">
+                <Button
+                  data-testid="zoom-mode-toggle"
+                  variant={zoomModeEnabled ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={handleToggleZoomMode}
+                  className="gap-2"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                  {zoomModeEnabled ? 'Disable Zoom' : 'Enable Zoom'}
+                </Button>
+              </div>
+            )}
+
+            <div 
+              ref={videoContainerRef}
+              className="relative overflow-hidden rounded-lg bg-black"
+              style={{ 
+                minHeight: '400px',
+                touchAction: isCoarsePointer && zoomModeEnabled ? 'none' : 'auto',
+              }}
+              data-allow-zoom={zoomModeEnabled ? 'true' : 'false'}
+              onTouchStart={isCoarsePointer && zoomModeEnabled ? handleTouchStartWrapper : undefined}
+              onTouchMove={isCoarsePointer && zoomModeEnabled ? handleTouchMoveWrapper : undefined}
+              onTouchEnd={isCoarsePointer && zoomModeEnabled ? handleTouchEndWrapper : undefined}
+            >
+              <video
+                ref={videoRef}
+                controls
+                className="aspect-video w-full"
+                style={{
+                  transform: zoomModeEnabled ? `translate(${panX}px, ${panY}px) scale(${zoomScale})` : 'none',
+                  transformOrigin: 'center center',
+                  transition: 'transform 0.1s ease-out',
+                }}
+                src={videoUrl}
+                poster={thumbnailUrl}
+                preload="metadata"
+                onTimeUpdate={handleTimeUpdate}
+                onPause={handlePause}
+                onEnded={handleEnded}
               >
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={handleZoomIn}
-                  disabled={zoomScale >= MAX_ZOOM}
-                  className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
+                Your browser does not support the video tag.
+              </video>
+
+              {/* Mobile Zoom Controls (only visible when zoom mode is enabled) */}
+              {isCoarsePointer && zoomModeEnabled && (
+                <div 
+                  data-testid="zoom-controls-container"
+                  className={`absolute bottom-20 right-4 flex flex-col gap-2 transition-opacity duration-300 ${
+                    showZoomControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  }`}
                 >
-                  <ZoomIn className="h-5 w-5" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  onClick={handleZoomOut}
-                  disabled={zoomScale <= MIN_ZOOM}
-                  className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
-                >
-                  <ZoomOut className="h-5 w-5" />
-                </Button>
-                {zoomScale > MIN_ZOOM && (
                   <Button
                     size="icon"
                     variant="secondary"
-                    onClick={handleZoomReset}
+                    onClick={handleZoomIn}
+                    disabled={zoomScale >= MAX_ZOOM}
                     className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
                   >
-                    <Minimize2 className="h-5 w-5" />
+                    <ZoomIn className="h-5 w-5" />
                   </Button>
-                )}
-              </div>
-            )}
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    onClick={handleZoomOut}
+                    disabled={zoomScale <= MIN_ZOOM}
+                    className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
+                  >
+                    <ZoomOut className="h-5 w-5" />
+                  </Button>
+                  {zoomScale > MIN_ZOOM && (
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      onClick={handleZoomReset}
+                      className="h-10 w-10 rounded-full bg-black/70 text-white hover:bg-black/90 backdrop-blur-sm"
+                    >
+                      <Minimize2 className="h-5 w-5" />
+                    </Button>
+                  )}
+                </div>
+              )}
 
-            {/* Zoom indicator */}
-            {isCoarsePointer && zoomScale > MIN_ZOOM && (
-              <div className="absolute top-4 left-4 rounded-full bg-black/70 px-3 py-1 text-xs text-white backdrop-blur-sm">
-                {(zoomScale * 100).toFixed(0)}%
-              </div>
-            )}
+              {/* Zoom indicator (only visible when zoom mode is enabled) */}
+              {isCoarsePointer && zoomModeEnabled && zoomScale > MIN_ZOOM && (
+                <div className="absolute top-4 left-4 rounded-full bg-black/70 px-3 py-1 text-xs text-white backdrop-blur-sm">
+                  {(zoomScale * 100).toFixed(0)}%
+                </div>
+              )}
+            </div>
           </div>
         )}
 

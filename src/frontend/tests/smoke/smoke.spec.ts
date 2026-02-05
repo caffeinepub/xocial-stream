@@ -188,3 +188,119 @@ test.describe('Network Resilience', () => {
     }
   });
 });
+
+test.describe('Video Zoom Feature', () => {
+  
+  test('Zoom controls not visible by default on mobile', async ({ page, context }) => {
+    // Set mobile viewport and touch device
+    await page.setViewportSize({ width: 375, height: 667 });
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'maxTouchPoints', { value: 5 });
+    });
+    
+    await page.goto(BASE_URL);
+    
+    // Navigate to a video
+    const videoLinks = page.locator('a[href^="/video/"]');
+    const count = await videoLinks.count();
+    
+    if (count === 0) {
+      console.log('No videos found, skipping zoom test');
+      test.skip();
+      return;
+    }
+    
+    await videoLinks.first().click();
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT });
+    
+    // Verify zoom controls are NOT visible by default
+    const zoomControlsContainer = page.locator('[data-testid="zoom-controls-container"]');
+    await expect(zoomControlsContainer).not.toBeVisible();
+    
+    // Verify zoom toggle button exists
+    const zoomToggle = page.locator('[data-testid="zoom-mode-toggle"]');
+    await expect(zoomToggle).toBeVisible();
+    
+    // Verify toggle shows "Enable Zoom" text
+    await expect(zoomToggle).toContainText('Enable Zoom');
+  });
+  
+  test('Zoom controls appear after enabling zoom mode on mobile', async ({ page, context }) => {
+    // Set mobile viewport and touch device
+    await page.setViewportSize({ width: 375, height: 667 });
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'maxTouchPoints', { value: 5 });
+    });
+    
+    await page.goto(BASE_URL);
+    
+    // Navigate to a video
+    const videoLinks = page.locator('a[href^="/video/"]');
+    const count = await videoLinks.count();
+    
+    if (count === 0) {
+      console.log('No videos found, skipping zoom test');
+      test.skip();
+      return;
+    }
+    
+    await videoLinks.first().click();
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT });
+    
+    // Click zoom toggle to enable zoom mode
+    const zoomToggle = page.locator('[data-testid="zoom-mode-toggle"]');
+    await zoomToggle.click();
+    
+    // Wait a moment for state update
+    await page.waitForTimeout(500);
+    
+    // Verify toggle text changed to "Disable Zoom"
+    await expect(zoomToggle).toContainText('Disable Zoom');
+    
+    // Verify zoom controls container exists (may be hidden by opacity)
+    const zoomControlsContainer = page.locator('[data-testid="zoom-controls-container"]');
+    await expect(zoomControlsContainer).toBeAttached();
+    
+    // Verify video container has zoom enabled
+    const videoContainer = page.locator('[data-allow-zoom="true"]');
+    await expect(videoContainer).toBeAttached();
+  });
+  
+  test('Normal tap on video does not activate zoom', async ({ page, context }) => {
+    // Set mobile viewport and touch device
+    await page.setViewportSize({ width: 375, height: 667 });
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'maxTouchPoints', { value: 5 });
+    });
+    
+    await page.goto(BASE_URL);
+    
+    // Navigate to a video
+    const videoLinks = page.locator('a[href^="/video/"]');
+    const count = await videoLinks.count();
+    
+    if (count === 0) {
+      console.log('No videos found, skipping zoom test');
+      test.skip();
+      return;
+    }
+    
+    await videoLinks.first().click();
+    await page.waitForLoadState('networkidle', { timeout: TIMEOUT });
+    
+    // Tap on video element
+    const video = page.locator('video');
+    await video.tap();
+    
+    // Wait a moment
+    await page.waitForTimeout(500);
+    
+    // Verify zoom controls are still not visible
+    const zoomControlsContainer = page.locator('[data-testid="zoom-controls-container"]');
+    await expect(zoomControlsContainer).not.toBeVisible();
+    
+    // Verify zoom mode is still disabled
+    const zoomToggle = page.locator('[data-testid="zoom-mode-toggle"]');
+    await expect(zoomToggle).toContainText('Enable Zoom');
+  });
+});

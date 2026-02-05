@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-in-app-faq-page-frontend-src-pages-faqpage-tsx-so-it-displays-the-owner-provided-xocial-stream-faq-content-exactly-word-for-word-including-punctuation-capitalization-and-paragraph-breaks-replacing-all-existing-faq-questions-answers-and-the-page-heading",
-      "featureTitle": "Update the in-app FAQ page (frontend/src/pages/FAQPage.tsx) so it displays the owner-provided “Xocial.Stream — FAQ” content exactly word-for-word (including punctuation, capitalization, and paragraph breaks), replacing all existing FAQ questions/answers and the page heading.",
+      "featureId": "feature-change-the-videopage-in-video-zoom-ux-so-pinch-to-zoom-pan-and-the-on-screen-zoom-controls-do-not-activate-show-automatically-when-the-video-is-opened-or-when-the-user-performs-a-normal-first-tap-on-the-video-zoom-must-only-become-active-after-an-explicit-user-action-that-indicates-intent-to-zoom-e-g-tapping-a-dedicated-enable-zoom-zoom-control",
+      "featureTitle": "Change the VideoPage in-video zoom UX so pinch-to-zoom/pan and the on-screen zoom controls do not activate/show automatically when the video is opened or when the user performs a normal first tap on the video; zoom must only become active after an explicit user action that indicates intent to zoom (e.g., tapping a dedicated “Enable Zoom” / “Zoom” control).",
       "files": [
-        "frontend/src/pages/FAQPage.tsx"
+        "frontend/src/pages/VideoPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -26,10 +26,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-lightweight-safeguard-in-the-faqpage-implementation-so-the-faq-content-is-stored-as-a-single-immutable-in-file-constant-single-source-of-truth-and-rendered-from-that-constant-to-reduce-the-risk-of-accidental-partial-edits-or-content-drift-during-future-ui-refactors",
-      "featureTitle": "Add a lightweight safeguard in the FAQPage implementation so the FAQ content is stored as a single immutable in-file constant (single source of truth) and rendered from that constant, to reduce the risk of accidental partial edits or content drift during future UI refactors.",
+      "featureId": "feature-implement-a-clear-user-facing-zoom-enable-disable-control-on-videopage-for-touch-devices-coarse-pointer-that-toggles-zoom-mode-when-zoom-mode-is-disabled-do-not-attach-pinch-pan-touch-handlers-and-do-not-opt-the-container-into-zoom-allowed-behavior-when-zoom-mode-is-enabled-attach-the-pinch-pan-handlers-and-allow-the-custom-zoom-system-to-work",
+      "featureTitle": "Implement a clear, user-facing zoom enable/disable control on VideoPage for touch devices (coarse pointer) that toggles zoom mode: when zoom mode is disabled, do not attach pinch/pan touch handlers and do not opt the container into zoom-allowed behavior; when zoom mode is enabled, attach the pinch/pan handlers and allow the custom zoom system to work.",
       "files": [
-        "frontend/src/pages/FAQPage.tsx"
+        "frontend/src/pages/VideoPage.tsx"
       ],
       "components": [
         "authorization@1.0.1",
@@ -46,6 +46,31 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-extend-the-existing-playwright-smoke-coverage-or-add-a-focused-ui-test-to-prevent-regression-verify-that-the-videopage-does-not-show-custom-zoom-controls-by-default-on-initial-render-and-that-zoom-controls-only-become-visible-usable-after-enabling-zoom-mode",
+      "featureTitle": "Update/extend the existing Playwright smoke coverage (or add a focused UI test) to prevent regression: verify that the VideoPage does not show custom zoom controls by default on initial render and that zoom controls only become visible/usable after enabling zoom mode.",
+      "files": [
+        "frontend/src/pages/VideoPage.tsx",
+        "frontend/tests/smoke/smoke.spec.ts"
+      ],
+      "components": [
+        "authorization@1.0.1",
+        "blob-storage@2.0.3",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "stripe@1.0.1",
+        "http-outcalls@1.1.1",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

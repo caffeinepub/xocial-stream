@@ -1,53 +1,70 @@
 {
   "kind": "build_request",
-  "title": "Publish final FAQ page copy verbatim on the in-app FAQ page",
+  "title": "Adjust VideoPage zoom so it only activates after explicit user action",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Update the in-app FAQ page (frontend/src/pages/FAQPage.tsx) so it displays the owner-provided “Xocial.Stream — FAQ” content exactly word-for-word (including punctuation, capitalization, and paragraph breaks), replacing all existing FAQ questions/answers and the page heading.",
+      "text": "Change the VideoPage in-video zoom UX so pinch-to-zoom/pan and the on-screen zoom controls do not activate/show automatically when the video is opened or when the user performs a normal first tap on the video; zoom must only become active after an explicit user action that indicates intent to zoom (e.g., tapping a dedicated “Enable Zoom” / “Zoom” control).",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "THIS IS OUR EXACT FAQ PAGE OK . I WANT EXACT WORD FOR WORD. DONT DARE CHANGE OR ADD ANYTHING TO IT . NOT A NUMBER OR A LETTER  DO YOU HEAR ME",
-          "GREAT PLEASE ADD."
+          "fix zoom  adjust it so zoom only activates after a user action. BUILD"
         ]
       },
       "acceptanceCriteria": [
-        "The FAQ page H1 heading renders exactly: “Xocial.Stream — FAQ”",
-        "The FAQ accordion contains exactly these questions in this order, with answers displayed exactly as provided by the owner (no added/removed/rewritten text):\n1) What is Xocial.Stream?\n2) How is this different from YouTube or other platforms?\n3) How does Xocial.Stream work?\n4) Are my uploaded videos safe? Will I lose them if something crashes?\n5) Can other people see my videos?\n6) Do you compress my videos?\n7) Are there upload limits?\n8) What video formats can I upload?\n9) What content is allowed on Xocial.Stream?\n10) What if my video gets blocked?\n11) How do I share my videos?\n12) Can I delete my videos?\n13) Can I cancel my subscription anytime?\n14) Is there a mobile app?\n15) What is the Internet Computer (ICP)?",
-        "All paragraph breaks and the upload-limits plan list (Free Plan / Pro / Creator Plus) appear as separate lines/paragraphs matching the provided text (no extra bullets, numbering, or formatting changes that alter the text)",
-        "No other FAQ content remains from the current FAQPage.tsx implementation"
+        "On VideoPage load, the video renders and behaves normally without entering any zoom interaction mode.",
+        "A normal single tap on the video to reveal native video controls does not enable zoom or show custom zoom controls.",
+        "Zoom interactions (pinch-to-zoom, pan, zoom in/out/reset buttons) only work after the user explicitly enables zoom via a dedicated UI control."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Add a lightweight safeguard in the FAQPage implementation so the FAQ content is stored as a single immutable in-file constant (single source of truth) and rendered from that constant, to reduce the risk of accidental partial edits or content drift during future UI refactors.",
+      "text": "Implement a clear, user-facing zoom enable/disable control on VideoPage for touch devices (coarse pointer) that toggles zoom mode: when zoom mode is disabled, do not attach pinch/pan touch handlers and do not opt the container into zoom-allowed behavior; when zoom mode is enabled, attach the pinch/pan handlers and allow the custom zoom system to work.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-1"
         ],
         "quotes": [
-          "DONT DARE CHANGE OR ADD ANYTHING TO IT . NOT A NUMBER OR A LETTER"
+          "adjust it so zoom only activates after a user action"
         ]
       },
       "acceptanceCriteria": [
-        "FAQ content is defined once (single constant) and rendered from that constant without re-typing the copy across multiple JSX fragments",
-        "No transformation logic (e.g., auto-trimming, auto-capitalization, markdown conversion) changes the literal displayed characters of the provided FAQ text"
+        "When zoom mode is OFF, the video container does not set `data-allow-zoom=\"true\"` and does not set `touch-action: none` for coarse-pointer devices.",
+        "When zoom mode is ON, the video container opts into the existing zoom-allowed mechanism (so custom pinch works) and uses the existing transform-based zoom/pan behavior.",
+        "User-facing text for the toggle is in English (e.g., “Enable zoom” / “Disable zoom”)."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update/extend the existing Playwright smoke coverage (or add a focused UI test) to prevent regression: verify that the VideoPage does not show custom zoom controls by default on initial render and that zoom controls only become visible/usable after enabling zoom mode.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "fix zoom"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Automated test fails on the old behavior (zoom controls visible/active without explicit enable) and passes with the new behavior.",
+        "Test uses stable selectors (add `data-testid` attributes on the zoom toggle and zoom controls container if needed)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify the FAQ copy in any way (no rewriting, no additions, no deletions, no punctuation changes).",
-    "Keep all user-facing text in English."
+    "Do not modify files under frontend/immutablePaths (e.g., frontend/src/main.tsx and shared UI components).",
+    "Keep the existing global mobile page-zoom prevention behavior intact outside of the VideoPage zoom-mode opt-in behavior.",
+    "Do not add new backend canisters or external services; this change must be implemented in the existing React frontend."
   ],
   "nonGoals": [
-    "Do not change any other static pages (Terms/Privacy/Support/Pricing/etc.).",
-    "Do not add new FAQ questions, sections, CTAs, or navigation items beyond rendering the provided FAQ text."
+    "Changing the underlying zoom math/limits (min/max scale, clamp behavior) beyond what is required to gate activation behind explicit user intent.",
+    "Adding new video features unrelated to zoom activation (uploads, playback progress, likes, comments, moderation, Stripe)."
   ],
   "imageRequirements": {
     "required": [],

@@ -20,6 +20,7 @@ import AdminVerificationBanner from './components/AdminVerificationBanner';
 import VideoRouteErrorBoundary from './components/VideoRouteErrorBoundary';
 import { Toaster } from './components/ui/sonner';
 import { Button } from './components/ui/button';
+import { usePreventPageZoom } from './hooks/usePreventPageZoom';
 
 // Root-level error boundary to prevent blank screens
 class AppErrorBoundary extends Component<
@@ -83,6 +84,9 @@ class AppErrorBoundary extends Component<
 }
 
 function Layout() {
+  // Apply global page zoom prevention
+  usePreventPageZoom();
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />

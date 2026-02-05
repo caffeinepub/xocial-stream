@@ -1,37 +1,57 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Publish owner-provided Xocial.Stream FAQ copy verbatim",
+  "title": "Gate VideoPage zoom interactions behind explicit user-enabled zoom mode",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Replace the existing FAQ page heading and accordion content with the owner-provided “Xocial.Stream — FAQ” copy rendered verbatim, preserving order and paragraph breaks.",
+      "summary": "Prevent VideoPage zoom controls/handlers from activating on load or normal first tap; require explicit zoom-enable action before any zoom UI/gestures work.",
       "acceptanceCriteria": [
-        "The FAQ page H1 heading renders exactly: “Xocial.Stream — FAQ”",
-        "The FAQ accordion contains exactly these questions in this order, with answers displayed exactly as provided by the owner (no added/removed/rewritten text):\n1) What is Xocial.Stream?\n2) How is this different from YouTube or other platforms?\n3) How does Xocial.Stream work?\n4) Are my uploaded videos safe? Will I lose them if something crashes?\n5) Can other people see my videos?\n6) Do you compress my videos?\n7) Are there upload limits?\n8) What video formats can I upload?\n9) What content is allowed on Xocial.Stream?\n10) What if my video gets blocked?\n11) How do I share my videos?\n12) Can I delete my videos?\n13) Can I cancel my subscription anytime?\n14) Is there a mobile app?\n15) What is the Internet Computer (ICP)?",
-        "All paragraph breaks and the upload-limits plan list (Free Plan / Pro / Creator Plus) appear as separate lines/paragraphs matching the provided text (no extra bullets, numbering, or formatting changes that alter the text)",
-        "No other FAQ content remains from the current FAQPage.tsx implementation"
+        "On VideoPage load, the video renders and behaves normally without entering any zoom interaction mode.",
+        "A normal single tap on the video to reveal native video controls does not enable zoom or show custom zoom controls.",
+        "Zoom interactions (pinch-to-zoom, pan, zoom in/out/reset buttons) only work after the user explicitly enables zoom via a dedicated UI control."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/FAQPage.tsx",
+          "path": "frontend/src/pages/VideoPage.tsx",
           "operation": "modify",
-          "description": "Replace the current heading and all existing FAQ items with the owner-provided final “Xocial.Stream — FAQ” content from msg-1, ensuring the H1 is exactly “Xocial.Stream — FAQ” and the accordion questions match the required 15-question order. Use the existing shadcn-ui Accordion components (Accordion/AccordionItem/AccordionTrigger/AccordionContent) to present the FAQ; Verify the component's usage instructions before implementing. Render answers in a way that preserves owner-provided punctuation, capitalization, and paragraph breaks exactly (e.g., literal text with preserved newlines), and remove any old questions/answers from the current file."
+          "description": "Introduce an explicit 'zoom mode' state (default OFF) and gate all custom zoom behavior behind it: do not render/show custom zoom controls by default, do not opt the container into zoom behavior by default, and ensure normal single taps on the video are not intercepted by custom zoom logic until zoom mode is enabled."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Add an in-file single-source-of-truth constant for the FAQ copy and render exclusively from it without transforming the literal characters.",
+      "summary": "Add a clear zoom enable/disable toggle for coarse-pointer devices that attaches/detaches pinch/pan handlers and zoom opt-in only when enabled.",
       "acceptanceCriteria": [
-        "FAQ content is defined once (single constant) and rendered from that constant without re-typing the copy across multiple JSX fragments",
-        "No transformation logic (e.g., auto-trimming, auto-capitalization, markdown conversion) changes the literal displayed characters of the provided FAQ text"
+        "When zoom mode is OFF, the video container does not set `data-allow-zoom=\"true\"` and does not set `touch-action: none` for coarse-pointer devices.",
+        "When zoom mode is ON, the video container opts into the existing zoom-allowed mechanism (so custom pinch works) and uses the existing transform-based zoom/pan behavior.",
+        "User-facing text for the toggle is in English (e.g., “Enable zoom” / “Disable zoom”)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/FAQPage.tsx",
+          "path": "frontend/src/pages/VideoPage.tsx",
           "operation": "modify",
-          "description": "Introduce a single immutable in-file constant (e.g., a frozen/readonly array of { question, answer } entries, plus the exact heading text) containing the owner-provided FAQ copy verbatim, including all intended line breaks for paragraphs and the upload-limits plan list. Update rendering to map over this constant so the copy is not duplicated across JSX and is displayed without any text transformation (no trimming, reflow, markdown parsing, or reformatting)."
+          "description": "Implement a user-facing Zoom mode toggle UI for coarse-pointer devices (e.g., 'Enable zoom' / 'Disable zoom') and wire it to: (1) conditionally set/unset container `data-allow-zoom=\"true\"`, (2) conditionally apply `touch-action: none` only when enabled, (3) conditionally attach/detach pinch/pan touch handlers only when enabled, and (4) reset zoom/pan and hide zoom controls when disabling zoom mode."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Add/extend Playwright coverage to ensure zoom controls are not shown by default and only appear after enabling zoom mode using stable selectors.",
+      "acceptanceCriteria": [
+        "Automated test fails on the old behavior (zoom controls visible/active without explicit enable) and passes with the new behavior.",
+        "Test uses stable selectors (add `data-testid` attributes on the zoom toggle and zoom controls container if needed)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/VideoPage.tsx",
+          "operation": "modify",
+          "description": "Add stable `data-testid` attributes for Playwright to target (at minimum: a zoom mode toggle control and a zoom controls container), ensuring the controls container is not present/visible when zoom mode is disabled and becomes present/visible after enabling zoom mode on coarse-pointer devices."
+        },
+        {
+          "path": "frontend/tests/smoke/smoke.spec.ts",
+          "operation": "modify",
+          "description": "Add a focused Playwright UI test (or extend the existing video navigation smoke test) that runs with a touch/coarse-pointer context, verifies the zoom controls are not visible on initial VideoPage render and remain hidden after a normal tap on the video, then enables zoom mode via the toggle and verifies the zoom controls become visible/usable using the `data-testid` selectors."
         }
       ]
     }
